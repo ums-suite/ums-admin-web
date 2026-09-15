@@ -6,6 +6,8 @@ export const AUTH_ROUTES = {
   login: '/login',
   /** Where an authenticated staff member lands with nowhere more specific to go. */
   authenticatedHome: '/dashboard',
+  /** Where {@link import('./permissions/permission.guard').permissionGuard} sends a caller who lacks the required permission. */
+  forbidden: '/forbidden',
 } as const;
 
 /** Query param `authGuard` attaches so the login screen can return the caller to where they were headed. */

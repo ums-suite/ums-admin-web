@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideApi, TokenStorageService } from '@ums/shared';
 import { AuthService } from './auth.service';
+import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../config/app-config';
 
 const tokenPair = {
   accessToken: 'access-1',
@@ -24,6 +25,10 @@ describe('AuthService', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideApi('http://localhost:8080'),
+        {
+          provide: APP_CONFIG,
+          useValue: { ...DEFAULT_APP_CONFIG, apiBaseUrl: 'http://localhost:8080' },
+        },
       ],
     });
     TestBed.inject(HttpClient);
@@ -37,13 +42,20 @@ describe('AuthService', () => {
     localStorage.clear();
   });
 
-  it('stores the token pair returned by a successful login', () => {
-    service.login('jdoe', 'correct-horse').subscribe();
+  it('stores the token pair returned by a successful login and loads the permission session', () => {
+    let resolved: unknown;
+    service.login('jdoe', 'correct-horse').subscribe((pair) => (resolved = pair));
 
     httpMock.expectOne('http://localhost:8080/api/v1/identity/auth/login').flush(tokenPair);
-
     expect(tokenStorage.isAuthenticated()).toBeTrue();
     expect(tokenStorage.getAccessToken()).toBe('access-1');
+
+    // login() only resolves once the session-start permission fetch also completes (ADMIN-5).
+    httpMock
+      .expectOne('http://localhost:8080/api/v1/identity/me/permissions')
+      .flush({ permissions: ['identity.user.manage'], scopeGrants: [] });
+
+    expect(resolved).toEqual(tokenPair);
   });
 
   it('clears local session state on a successful logout', () => {

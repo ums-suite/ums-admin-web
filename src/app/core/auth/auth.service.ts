@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { IdentityApiService, TokenStorageService, type UmsTokenPair } from '@ums/shared';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, switchMap, tap } from 'rxjs';
+import { PermissionsService } from './permissions/permissions.service';
 
 /**
  * This app's own login/logout facade over `@ums/shared`'s session primitives (ADMIN-4,
@@ -25,15 +26,25 @@ import { Observable, tap } from 'rxjs';
 export class AuthService {
   private readonly identityApi = inject(IdentityApiService);
   private readonly tokenStorage = inject(TokenStorageService);
+  private readonly permissions = inject(PermissionsService);
 
-  /** `POST /api/v1/identity/auth/login`. Stores the returned token pair on success. */
+  /**
+   * `POST /api/v1/identity/auth/login`. Stores the returned token pair, then fetches the
+   * permission/`ScopeGrant` session (ADMIN-5: "permissions ... fetched at session start") before
+   * resolving -- by the time a caller's `login()` subscription completes, the app shell can
+   * render its permission-gated nav/controls immediately, with no separate "permissions not
+   * loaded yet" flash on the post-login redirect.
+   */
   login(identifier: string, password: string): Observable<UmsTokenPair> {
     return (
       this.identityApi.apiV1IdentityAuthLoginPost({
         identifier,
         password,
       }) as Observable<UmsTokenPair>
-    ).pipe(tap((pair) => this.tokenStorage.setTokens(pair)));
+    ).pipe(
+      tap((pair) => this.tokenStorage.setTokens(pair)),
+      switchMap((pair) => this.permissions.load().pipe(map(() => pair))),
+    );
   }
 
   /**
