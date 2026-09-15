@@ -1,0 +1,127 @@
+<div class="roles-list">
+  <div class="roles-list__toolbar">
+    <h1>Roles</h1>
+    <ums-button *appHasPermission="permissionKeys.identity.roleManage" (click)="openCreateModal()">
+      New Role
+    </ums-button>
+  </div>
+
+  <p class="roles-list__note">
+    MFA policy is shown per role below (from ums-core's real `RequiresMfa` field). Per-user MFA
+    enrollment status has no standalone query endpoint in ums-core today -- it is only observable
+    transiently during a login attempt -- so no per-user enrollment table is shown here.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="roles-list__error">{{ store.error() }}</p>
+  }
+
+  <table class="roles-list__table">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">Permissions</th>
+        <th scope="col">MFA required</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (role of store.roles(); track role.id) {
+        <tr>
+          <td>{{ role.name }}</td>
+          <td>{{ role.description ?? '--' }}</td>
+          <td class="ums-tnum">{{ role.permissions.length }}</td>
+          <td>
+            @if (role.requiresMfa) {
+              <ums-badge variant="warning" size="sm">Required</ums-badge>
+            } @else {
+              <ums-badge variant="neutral" size="sm">Not required</ums-badge>
+            }
+          </td>
+          <td>
+            <ums-button
+              *appHasPermission="permissionKeys.identity.roleManage"
+              variant="secondary"
+              size="sm"
+              (click)="openEditModal(role)"
+            >
+              Edit Permissions
+            </ums-button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<ums-modal [open]="createModalOpen()" title="New Role" (closed)="createModalOpen.set(false)">
+  <ums-form-field #nameField="umsFormField" label="Name" [required]="true">
+    <ums-input
+      [id]="nameField.controlId()"
+      [value]="newRoleName()"
+      (valueChange)="newRoleName.set($event)"
+    />
+  </ums-form-field>
+  <ums-form-field #descriptionField="umsFormField" label="Description">
+    <ums-textarea
+      [id]="descriptionField.controlId()"
+      [value]="newRoleDescription()"
+      (valueChange)="newRoleDescription.set($event)"
+    />
+  </ums-form-field>
+
+  <fieldset class="roles-list__permission-groups">
+    <legend>Permissions</legend>
+    @for (group of permissionGroups(); track group.owningModule) {
+      <div class="roles-list__permission-group">
+        <h3>{{ group.owningModule }}</h3>
+        @for (entry of group.entries; track entry.key) {
+          <label class="roles-list__permission-item">
+            <input
+              type="checkbox"
+              [checked]="selectedPermissions().has(entry.key)"
+              (change)="togglePermission(entry.key)"
+            />
+            {{ entry.key }} -- {{ entry.description }}
+          </label>
+        }
+      </div>
+    }
+  </fieldset>
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="createModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitCreateRole()">Create</ums-button>
+  </div>
+</ums-modal>
+
+<ums-modal
+  [open]="editModalOpen()"
+  [title]="'Edit Permissions -- ' + (editingRole()?.name ?? '')"
+  (closed)="editModalOpen.set(false)"
+>
+  <fieldset class="roles-list__permission-groups">
+    <legend>Permissions</legend>
+    @for (group of permissionGroups(); track group.owningModule) {
+      <div class="roles-list__permission-group">
+        <h3>{{ group.owningModule }}</h3>
+        @for (entry of group.entries; track entry.key) {
+          <label class="roles-list__permission-item">
+            <input
+              type="checkbox"
+              [checked]="selectedPermissions().has(entry.key)"
+              (change)="togglePermission(entry.key)"
+            />
+            {{ entry.key }} -- {{ entry.description }}
+          </label>
+        }
+      </div>
+    }
+  </fieldset>
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="editModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitEditPermissions()">Save</ums-button>
+  </div>
+</ums-modal>

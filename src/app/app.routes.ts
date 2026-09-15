@@ -64,7 +64,10 @@ export const routes: Routes = [
           {
             path: 'roles',
             canActivate: [permissionGuard(PERMISSION_KEYS.identity.roleManage)],
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/identity/roles/roles-list.component').then(
+                (m) => m.RolesListComponent,
+              ),
             data: { label: 'Identity & Access -- Roles' },
           },
         ],
