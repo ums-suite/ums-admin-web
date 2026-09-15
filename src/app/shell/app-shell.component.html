@@ -1,0 +1,17 @@
+<ums-app-shell mode="operational" [navItems]="navItems()" (navItemClick)="onNavItemClick($event)">
+  <span umsAppShellBrand class="app-shell__brand">UMS Admin Console</span>
+
+  <div umsAppShellActions class="app-shell__actions">
+    <ums-icon-button
+      icon="magnifying-glass"
+      label="Open command palette"
+      variant="ghost"
+      (click)="openCommandPalette()"
+    />
+    <ums-icon-button icon="sliders" label="Cycle theme" variant="ghost" (click)="toggleTheme()" />
+    <ums-icon-button icon="sign-out" label="Log out" variant="ghost" (click)="logout()" />
+  </div>
+
+  <router-outlet />
+</ums-app-shell>
+<app-command-palette />
