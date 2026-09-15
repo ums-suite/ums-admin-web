@@ -42,6 +42,13 @@ export const PERMISSION_KEYS = {
     requestReview: 'student.request.review',
   },
   reporting: {
-    dashboardRead: 'reporting.dashboard.read',
+    // These four match ums-core's real, confirmed per-domain permission-gating pattern
+    // ("each its own permission (reporting.dashboard.<domain>)") for the domains
+    // requirement-spec.md §7 names by example (enrollment funnel, collection rate, occupancy,
+    // GPA distribution) -- the exact literal strings are still this app's own assumed guess.
+    dashboardAdmission: 'reporting.dashboard.admission',
+    dashboardFinancial: 'reporting.dashboard.financial',
+    dashboardHostel: 'reporting.dashboard.hostel',
+    dashboardAcademic: 'reporting.dashboard.academic',
   },
 } as const;

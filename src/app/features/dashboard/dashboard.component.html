@@ -1,0 +1,72 @@
+<div class="dashboard">
+  <div *appHasPermission="permissionKeys.reporting.dashboardAdmission" class="dashboard__tile">
+    <ums-card variant="content" title="Admission -- Enrollment Funnel">
+      <div class="dashboard__tile-header">
+        <app-freshness-label [asOf]="admission().response?.dataAsOf ?? null" />
+        <ums-button variant="ghost" size="sm" (click)="refresh('admission')">Refresh</ums-button>
+      </div>
+      @if (admissionFunnelCategories().length > 0) {
+        <ums-bar-chart
+          [categories]="admissionFunnelCategories()"
+          [series]="admissionFunnelSeries()"
+        />
+      } @else {
+        <ums-empty-state
+          title="No data yet"
+          description="This dashboard hasn't been computed yet."
+        />
+      }
+    </ums-card>
+  </div>
+
+  <div *appHasPermission="permissionKeys.reporting.dashboardFinancial" class="dashboard__tile">
+    <ums-card variant="content" title="Finance -- Collection Rate">
+      <div class="dashboard__tile-header">
+        <app-freshness-label [asOf]="financial().response?.dataAsOf ?? null" />
+        <ums-button variant="ghost" size="sm" (click)="refresh('financial')">Refresh</ums-button>
+      </div>
+      @if (financialCollectionRate(); as rate) {
+        <ums-progress-ring [value]="rate" tone="success" />
+      } @else {
+        <ums-empty-state
+          title="No data yet"
+          description="This dashboard hasn't been computed yet."
+        />
+      }
+    </ums-card>
+  </div>
+
+  <div *appHasPermission="permissionKeys.reporting.dashboardHostel" class="dashboard__tile">
+    <ums-card variant="content" title="Hostel -- Occupancy">
+      <div class="dashboard__tile-header">
+        <app-freshness-label [asOf]="hostel().response?.dataAsOf ?? null" />
+        <ums-button variant="ghost" size="sm" (click)="refresh('hostel')">Refresh</ums-button>
+      </div>
+      @if (hostelOccupancy(); as occupancy) {
+        <ums-progress-ring [value]="occupancy" tone="info" />
+      } @else {
+        <ums-empty-state
+          title="No data yet"
+          description="This dashboard hasn't been computed yet."
+        />
+      }
+    </ums-card>
+  </div>
+
+  <div *appHasPermission="permissionKeys.reporting.dashboardAcademic" class="dashboard__tile">
+    <ums-card variant="content" title="Academic -- GPA Distribution">
+      <div class="dashboard__tile-header">
+        <app-freshness-label [asOf]="academic().response?.dataAsOf ?? null" />
+        <ums-button variant="ghost" size="sm" (click)="refresh('academic')">Refresh</ums-button>
+      </div>
+      @if (academicGpaCategories().length > 0) {
+        <ums-bar-chart [categories]="academicGpaCategories()" [series]="academicGpaSeries()" />
+      } @else {
+        <ums-empty-state
+          title="No data yet"
+          description="This dashboard hasn't been computed yet."
+        />
+      }
+    </ums-card>
+  </div>
+</div>

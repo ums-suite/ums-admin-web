@@ -1,0 +1,13 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-5, 20px);
+  padding: var(--space-5, 20px);
+}
+
+.dashboard__tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-3, 12px);
+}
