@@ -1,0 +1,223 @@
+<ums-tab-bar
+  #tabBar="umsTabBar"
+  [items]="tabs"
+  [selectedIndex]="selectedTabIndex()"
+  (selectedIndexChange)="onTabChange($event)"
+/>
+
+@if (selectedTabIndex() === 0) {
+  <section class="users-list" [attr.id]="tabBar.panelId(0)" role="tabpanel">
+    <div class="users-list__toolbar">
+      <h1>Users</h1>
+      <ums-button
+        *appHasPermission="permissionKeys.identity.userManage"
+        (click)="openCreateModal()"
+      >
+        New User
+      </ums-button>
+    </div>
+
+    @if (store.error()) {
+      <p role="alert" class="users-list__error">{{ store.error() }}</p>
+    }
+
+    <table class="users-list__table">
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Email</th>
+          <th scope="col">Status</th>
+          <th scope="col">Created</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of store.users(); track user.id) {
+          <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <ums-badge [variant]="user.status === 'Active' ? 'success' : 'danger'">{{
+                user.status
+              }}</ums-badge>
+            </td>
+            <td class="ums-tnum">{{ user.createdAt | slice: 0 : 10 }}</td>
+            <td class="users-list__row-actions">
+              <ums-button
+                *appHasPermission="permissionKeys.identity.userManage"
+                variant="secondary"
+                size="sm"
+                (click)="deactivateOrReactivate(user)"
+              >
+                {{ user.status === 'Active' ? 'Deactivate' : 'Reactivate' }}
+              </ums-button>
+              <ums-button
+                *appHasPermission="permissionKeys.identity.roleAssign"
+                variant="ghost"
+                size="sm"
+                (click)="openAssignRoleModal(user)"
+              >
+                Assign Role
+              </ums-button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (store.isLoading()) {
+      <p>Loading...</p>
+    }
+  </section>
+} @else {
+  <section class="users-list" [attr.id]="tabBar.panelId(1)" role="tabpanel">
+    <h1>My Active Sessions</h1>
+    <p class="users-list__note">
+      Shows only your own sessions -- ums-core has no endpoint for an admin to view another user's
+      sessions.
+    </p>
+
+    @if (store.sessionsError()) {
+      <p role="alert" class="users-list__error">{{ store.sessionsError() }}</p>
+    }
+
+    <table class="users-list__table">
+      <thead>
+        <tr>
+          <th scope="col">Device</th>
+          <th scope="col">IP</th>
+          <th scope="col">Last used</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (session of store.sessions(); track session.id) {
+          <tr>
+            <td>
+              {{ session.userAgent ?? 'Unknown device' }}
+              @if (session.isCurrent) {
+                <ums-badge variant="info" size="sm">This device</ums-badge>
+              }
+            </td>
+            <td>{{ session.createdFromIp ?? '--' }}</td>
+            <td><app-freshness-label [asOf]="session.lastUsedAt" prefix="Last used" /></td>
+            <td>
+              @if (!session.isCurrent) {
+                <ums-button
+                  variant="secondary"
+                  size="sm"
+                  (click)="store.revokeSession(session.id).subscribe()"
+                >
+                  Revoke
+                </ums-button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}
+
+<ums-modal [open]="createModalOpen()" title="New User" (closed)="createModalOpen.set(false)">
+  <ums-form-field #usernameField="umsFormField" label="Username" [required]="true">
+    <ums-input
+      [id]="usernameField.controlId()"
+      [value]="newUser().username ?? ''"
+      (valueChange)="newUser.set({ ...newUser(), username: $event })"
+    />
+  </ums-form-field>
+  <ums-form-field #emailField="umsFormField" label="Email" [required]="true">
+    <ums-input
+      type="email"
+      [id]="emailField.controlId()"
+      [value]="newUser().email ?? ''"
+      (valueChange)="newUser.set({ ...newUser(), email: $event })"
+    />
+  </ums-form-field>
+  <ums-form-field #givenNameField="umsFormField" label="Given name" [required]="true">
+    <ums-input
+      [id]="givenNameField.controlId()"
+      [value]="newUser().givenName ?? ''"
+      (valueChange)="newUser.set({ ...newUser(), givenName: $event })"
+    />
+  </ums-form-field>
+  <ums-form-field #familyNameField="umsFormField" label="Family name" [required]="true">
+    <ums-input
+      [id]="familyNameField.controlId()"
+      [value]="newUser().familyName ?? ''"
+      (valueChange)="newUser.set({ ...newUser(), familyName: $event })"
+    />
+  </ums-form-field>
+  <ums-form-field
+    #passwordField="umsFormField"
+    label="Initial password"
+    [required]="true"
+    hint="ums-core has no password-delivery mechanism yet -- share this with the user out of band."
+  >
+    <ums-input
+      type="password"
+      [id]="passwordField.controlId()"
+      [value]="newUser().password ?? ''"
+      (valueChange)="newUser.set({ ...newUser(), password: $event })"
+    />
+  </ums-form-field>
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="createModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitCreateUser()">Create</ums-button>
+  </div>
+</ums-modal>
+
+<ums-modal
+  [open]="assignRoleModalOpen()"
+  title="Assign Role"
+  (closed)="assignRoleModalOpen.set(false)"
+>
+  @if (assignRoleTargetUser(); as user) {
+    <p>Assign a role to {{ user.username }}.</p>
+    <ums-form-field #roleField="umsFormField" label="Role" [required]="true">
+      <ums-select
+        [id]="roleField.controlId()"
+        [options]="roleOptions()"
+        [value]="assignRoleForm().roleId"
+        (valueChange)="assignRoleForm.set({ ...assignRoleForm(), roleId: $event })"
+      />
+    </ums-form-field>
+    <ums-form-field
+      #scopeField="umsFormField"
+      label="Organization node id (optional -- leave blank for a global/unscoped grant)"
+    >
+      <ums-input
+        [id]="scopeField.controlId()"
+        [value]="assignRoleForm().organizationNodeId"
+        (valueChange)="assignRoleForm.set({ ...assignRoleForm(), organizationNodeId: $event })"
+      />
+    </ums-form-field>
+
+    @if (store.assignmentsFor(user.id).length > 0) {
+      <p class="users-list__note">
+        Assigned this session (no endpoint exists to list a user's existing assignments):
+      </p>
+      <ul>
+        @for (assignment of store.assignmentsFor(user.id); track assignment.assignmentId) {
+          <li>
+            {{ assignment.roleName }}
+            <ums-button
+              variant="ghost"
+              size="sm"
+              (click)="store.revokeRoleAssignment(user.id, assignment.assignmentId).subscribe()"
+            >
+              Revoke
+            </ums-button>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="assignRoleModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitAssignRole()">Assign</ums-button>
+  </div>
+</ums-modal>

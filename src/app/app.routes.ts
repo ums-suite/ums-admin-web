@@ -55,7 +55,10 @@ export const routes: Routes = [
           { path: '', pathMatch: 'full', redirectTo: 'users' },
           {
             path: 'users',
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/identity/users/users-list.component').then(
+                (m) => m.UsersListComponent,
+              ),
             data: { label: 'Identity & Access -- Users' },
           },
           {

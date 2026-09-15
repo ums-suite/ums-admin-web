@@ -1,0 +1,36 @@
+.users-list {
+  padding: var(--space-5, 20px);
+}
+
+.users-list__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-4, 16px);
+}
+
+.users-list__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: start;
+    padding: var(--space-3, 12px);
+    border-block-end: 1px solid var(--color-border);
+  }
+}
+
+.users-list__row-actions {
+  display: flex;
+  gap: var(--space-2, 8px);
+}
+
+.users-list__error {
+  color: var(--color-danger);
+}
+
+.users-list__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
