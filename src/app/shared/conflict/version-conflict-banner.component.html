@@ -1,0 +1,10 @@
+<ums-badge variant="warning" size="sm">Conflict</ums-badge>
+<p class="app-version-conflict-banner__message">{{ message() }}</p>
+@if (changedFields().length > 0) {
+  <ul class="app-version-conflict-banner__fields">
+    @for (field of changedFields(); track field) {
+      <li>{{ field }}</li>
+    }
+  </ul>
+}
+<ums-button variant="secondary" size="sm" (click)="onReload()">{{ reloadLabel() }}</ums-button>
