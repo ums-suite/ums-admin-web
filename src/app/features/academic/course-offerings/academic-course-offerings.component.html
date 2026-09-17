@@ -1,0 +1,245 @@
+<div class="academic-offerings">
+  <h1>Course Offerings, Seats &amp; Exams</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="academic-offerings__error">{{ store.error() }}</p>
+  }
+
+  <section class="academic-offerings__section">
+    <h2>Lookup</h2>
+    <div class="academic-offerings__lookup">
+      <ums-form-field #offeringLookupField="umsFormField" label="Course offering id">
+        <ums-input
+          [id]="offeringLookupField.controlId()"
+          [value]="lookupOfferingId()"
+          (valueChange)="lookupOfferingId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadOffering()">Load</ums-button>
+    </div>
+    <div class="academic-offerings__lookup">
+      <ums-form-field #semesterLookupField="umsFormField" label="Semester id (list offerings)">
+        <ums-input
+          [id]="semesterLookupField.controlId()"
+          [value]="lookupSemesterId()"
+          (valueChange)="lookupSemesterId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadOfferingsBySemester()">List</ums-button>
+    </div>
+
+    @if (store.offeringsBySemester().length > 0) {
+      <table class="academic-offerings__table">
+        <thead>
+          <tr>
+            <th scope="col">Course</th>
+            <th scope="col">Seats</th>
+            <th scope="col">Instructor</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (offering of store.offeringsBySemester(); track offering.id) {
+            <tr>
+              <td>{{ offering.courseId }}</td>
+              <td class="ums-tnum">
+                {{ offering.enrolledCount }} / {{ offering.capacity }}
+                <ums-badge [variant]="offering.hasAvailableSeats ? 'success' : 'warning'">
+                  {{ offering.hasAvailableSeats ? 'Open' : 'Full' }}
+                </ums-badge>
+              </td>
+              <td>{{ offering.instructorFacultyMemberId ?? 'Unassigned' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  @if (store.currentOffering(); as offering) {
+    <section class="academic-offerings__section">
+      <h2>Course Offering Detail</h2>
+      <dl class="academic-offerings__summary">
+        <dt>Course</dt>
+        <dd>{{ offering.courseId }}</dd>
+        <dt>Semester</dt>
+        <dd>{{ offering.semesterId }}</dd>
+        <dt>Department</dt>
+        <dd>{{ offering.departmentId }}</dd>
+        <dt>Seats</dt>
+        <dd class="ums-tnum">
+          {{ offering.enrolledCount }} / {{ offering.capacity }}
+          <ums-badge [variant]="offering.hasAvailableSeats ? 'success' : 'warning'">
+            {{ offering.hasAvailableSeats ? 'Seats available' : 'Full' }}
+          </ums-badge>
+        </dd>
+        <dt>Instructor</dt>
+        <dd>{{ offering.instructorFacultyMemberId ?? 'Unassigned' }}</dd>
+        <dt>Sections</dt>
+        <dd>
+          @for (section of offering.sections; track section.id) {
+            <div>
+              {{ section.code }} -- {{ section.dayOfWeek }} {{ section.start }}-{{ section.end }}
+            </div>
+          } @empty {
+            <span>No sections.</span>
+          }
+        </dd>
+        <dt>Exams</dt>
+        <dd>
+          @for (exam of offering.exams; track exam.id) {
+            <div>
+              {{ exam.name }}:
+              @for (assessment of exam.assessments; track assessment.id) {
+                {{ assessment.name }} ({{ assessment.weight }})
+              }
+            </div>
+          } @empty {
+            <span>No exams configured.</span>
+          }
+        </dd>
+      </dl>
+
+      <div
+        class="academic-offerings__card"
+        *appHasPermission="permissionKeys.academic.courseOfferingManage"
+      >
+        <h3>Assign Instructor</h3>
+        <ums-form-field #instructorField="umsFormField" label="Faculty member id" [required]="true">
+          <ums-input
+            [id]="instructorField.controlId()"
+            [value]="instructorFacultyMemberId()"
+            (valueChange)="instructorFacultyMemberId.set($event)"
+          />
+        </ums-form-field>
+        <ums-button size="sm" (click)="submitInstructorAssignment()">Assign</ums-button>
+      </div>
+
+      <div
+        class="academic-offerings__card"
+        *appHasPermission="permissionKeys.academic.courseOfferingManage"
+      >
+        <h3>Add Exam (weighted assessment)</h3>
+        <p class="academic-offerings__note">
+          ums-core's Exam entity has no date/time/room/examiner field -- this configures only the
+          named, weighted gradable components used to compute a Grade's weighted score. Scheduling,
+          room allocation, and examiner assignment have no backend surface to build against yet.
+        </p>
+        <ums-form-field #examNameField="umsFormField" label="Exam name" [required]="true">
+          <ums-input
+            [id]="examNameField.controlId()"
+            [value]="examName()"
+            (valueChange)="examName.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field
+          #assessmentNameField="umsFormField"
+          label="Assessment name"
+          [required]="true"
+        >
+          <ums-input
+            [id]="assessmentNameField.controlId()"
+            [value]="assessmentName()"
+            (valueChange)="assessmentName.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field
+          #assessmentWeightField="umsFormField"
+          label="Weight (fraction of 1.0)"
+          [required]="true"
+        >
+          <ums-input
+            type="number"
+            [id]="assessmentWeightField.controlId()"
+            [value]="assessmentWeight()"
+            (valueChange)="assessmentWeight.set($event)"
+          />
+        </ums-form-field>
+        <ums-button size="sm" (click)="submitExam()">Add Exam</ums-button>
+      </div>
+    </section>
+  }
+
+  <section
+    class="academic-offerings__section"
+    *appHasPermission="permissionKeys.academic.courseOfferingManage"
+  >
+    <h2>Create Course Offering</h2>
+    <ums-form-field #courseIdField="umsFormField" label="Course id" [required]="true">
+      <ums-input
+        [id]="courseIdField.controlId()"
+        [value]="newCourseId()"
+        (valueChange)="newCourseId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #semesterIdField="umsFormField" label="Semester id" [required]="true">
+      <ums-input
+        [id]="semesterIdField.controlId()"
+        [value]="newSemesterId()"
+        (valueChange)="newSemesterId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #departmentIdField="umsFormField" label="Department id" [required]="true">
+      <ums-input
+        [id]="departmentIdField.controlId()"
+        [value]="newDepartmentId()"
+        (valueChange)="newDepartmentId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #capacityField="umsFormField" label="Capacity (seat limit)" [required]="true">
+      <ums-input
+        type="number"
+        [id]="capacityField.controlId()"
+        [value]="newCapacity()"
+        (valueChange)="newCapacity.set($event)"
+      />
+    </ums-form-field>
+
+    <div class="academic-offerings__card">
+      <h3>Sections</h3>
+      @for (section of draftSections(); track $index) {
+        <div class="academic-offerings__section-row">
+          <span
+            >{{ section.code }} -- {{ section.dayOfWeek }} {{ section.start }}-{{
+              section.end
+            }}</span
+          >
+          <ums-button variant="ghost" size="sm" (click)="removeDraftSection($index)"
+            >Remove</ums-button
+          >
+        </div>
+      }
+      <ums-form-field #sectionCodeField="umsFormField" label="Section code">
+        <ums-input
+          [id]="sectionCodeField.controlId()"
+          [value]="sectionCode()"
+          (valueChange)="sectionCode.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #sectionDayField="umsFormField" label="Day of week">
+        <ums-select
+          [id]="sectionDayField.controlId()"
+          [options]="dayOptions"
+          [value]="sectionDay()"
+          (valueChange)="sectionDay.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #sectionStartField="umsFormField" label="Start (HH:mm:ss)">
+        <ums-input
+          [id]="sectionStartField.controlId()"
+          [value]="sectionStart()"
+          (valueChange)="sectionStart.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #sectionEndField="umsFormField" label="End (HH:mm:ss)">
+        <ums-input
+          [id]="sectionEndField.controlId()"
+          [value]="sectionEnd()"
+          (valueChange)="sectionEnd.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" size="sm" (click)="addDraftSection()">Add Section</ums-button>
+    </div>
+
+    <ums-button (click)="submitOffering()">Create Course Offering</ums-button>
+  </section>
+</div>

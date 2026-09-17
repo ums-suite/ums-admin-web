@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { AcademicStore } from '../../features/academic/state/academic.store';
 import { FacultyStore } from '../../features/faculty/state/faculty.store';
 import { FinanceStore } from '../../features/finance/state/finance.store';
 import { HostelStore } from '../../features/hostel/state/hostel.store';
@@ -14,10 +13,11 @@ import { AuditStore } from '../../features/audit/state/audit.store';
  * ADMIN-3: every module-scaffold store shares the exact same `withLoadState()` shape, so one
  * parameterized suite is enough to confirm each composes correctly and defaults sanely -- these
  * are intentionally trivial until their own module tickets flesh them out (see each store's own
- * class doc for which ticket that is).
+ * class doc for which ticket that is). `AcademicStore` was removed from this list once ADMIN-18
+ * fleshed it out into real per-entity stores (`features/academic/state/`) -- see those stores' own
+ * specs instead.
  */
 const scaffoldStores = [
-  ['AcademicStore', AcademicStore],
   ['FacultyStore', FacultyStore],
   ['FinanceStore', FinanceStore],
   ['HostelStore', HostelStore],

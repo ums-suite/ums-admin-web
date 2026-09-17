@@ -105,7 +105,36 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'academic', loadComponent: placeholder, data: { label: 'Academic' } },
+      {
+        path: 'academic',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'curriculum' },
+          {
+            path: 'curriculum',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.academic.programManage,
+                PERMISSION_KEYS.academic.curriculumManage,
+                PERMISSION_KEYS.academic.courseManage,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/academic/curriculum/academic-curriculum.component').then(
+                (m) => m.AcademicCurriculumComponent,
+              ),
+            data: { label: 'Academic -- Curriculum' },
+          },
+          {
+            path: 'course-offerings',
+            canActivate: [permissionGuard(PERMISSION_KEYS.academic.courseOfferingManage)],
+            loadComponent: () =>
+              import('./features/academic/course-offerings/academic-course-offerings.component').then(
+                (m) => m.AcademicCourseOfferingsComponent,
+              ),
+            data: { label: 'Academic -- Course Offerings' },
+          },
+        ],
+      },
       {
         path: 'student',
         children: [
