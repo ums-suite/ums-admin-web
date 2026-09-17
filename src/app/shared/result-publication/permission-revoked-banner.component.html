@@ -1,0 +1,5 @@
+<p class="app-permission-revoked-banner__message">
+  Your permission for {{ actionLabel() }} was revoked. This flow cannot continue -- leave and, if
+  your access is restored, start again from the beginning.
+</p>
+<ums-button variant="danger" (click)="onLeave()">{{ leaveLabel() }}</ums-button>
