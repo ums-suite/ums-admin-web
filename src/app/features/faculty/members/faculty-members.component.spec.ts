@@ -1,10 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { provideApi } from '@ums/shared';
 import { UmsToastService } from '@ums/design-system';
 import { ConfirmationService } from '../../../shared/confirmation/confirmation.service';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { FacultyMembersComponent } from './faculty-members.component';
 
@@ -113,6 +114,49 @@ describe('FacultyMembersComponent', () => {
       .flush({ items: [{ id: 'audit-2' }] });
 
     expect(toast.toasts()[0].message).toContain('audit entry audit-2');
+  });
+
+  it('renders the department list and gated edit/status sections once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: ['faculty.member.manage'],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(FacultyMembersComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance['lookupDepartmentId'].set('dept-1');
+    fixture.componentInstance['loadMembersByDepartment']();
+    httpMock
+      .expectOne((r) => r.url === `${apiBaseUrl}/api/v1/faculty/members/`)
+      .flush({ items: [member], totalCount: 1, skip: 0, take: 50 });
+
+    fixture.componentInstance['lookupMemberId'].set('fac-1');
+    fixture.componentInstance['loadMember']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/faculty/members/fac-1`).flush(member);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.faculty-members__card').length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('EMP-1');
+  });
+
+  it('navigates to course assignments and leave requests with the member id as a query param', () => {
+    const fixture = TestBed.createComponent(FacultyMembersComponent);
+    fixture.detectChanges();
+    const router = TestBed.inject(Router);
+    const navigateSpy = spyOn(router, 'navigate');
+
+    fixture.componentInstance['goToCourseAssignments']('fac-1');
+    expect(navigateSpy).toHaveBeenCalledWith(['/faculty/course-assignments'], {
+      queryParams: { facultyMemberId: 'fac-1' },
+    });
+
+    fixture.componentInstance['goToLeaveRequests']('fac-1');
+    expect(navigateSpy).toHaveBeenCalledWith(['/faculty/leave-requests'], {
+      queryParams: { facultyMemberId: 'fac-1' },
+    });
   });
 
   it('does not submit an update without a loaded member', () => {

@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { AcademicCurriculumComponent } from './academic-curriculum.component';
 
@@ -139,6 +140,73 @@ describe('AcademicCurriculumComponent', () => {
     fixture.componentInstance['submitCurriculum']();
     httpMock.expectNone(`${apiBaseUrl}/api/v1/academic/curriculums`);
     expect(fixture.componentInstance['store'].currentCurriculum()).toBeNull();
+  });
+
+  it('renders all gated create/config sections and loaded summaries once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: [
+        'academic.program.manage',
+        'academic.academicsession.manage',
+        'academic.course.manage',
+        'academic.curriculum.manage',
+      ],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(AcademicCurriculumComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance['lookupProgramId'].set('prog-1');
+    fixture.componentInstance['loadProgram']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/academic/programs/prog-1`).flush(program);
+
+    fixture.componentInstance['lookupSessionId'].set('sess-1');
+    fixture.componentInstance['loadAcademicSession']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/academic/academic-sessions/sess-1`).flush({
+      id: 'sess-1',
+      code: 'FALL2026',
+      semesters: [
+        {
+          id: 'sem-1',
+          name: 'Fall',
+          registrationStart: '2026-08-01',
+          registrationEnd: '2026-08-15',
+        },
+      ],
+      createdAt: '2026-01-01T00:00:00Z',
+    });
+
+    fixture.componentInstance['lookupCourseId'].set('course-1');
+    fixture.componentInstance['loadCourse']();
+    httpMock
+      .expectOne(`${apiBaseUrl}/api/v1/academic/courses/course-1`)
+      .flush({
+        ...{
+          id: 'course-1',
+          code: 'CSE101',
+          title: 'Intro',
+          creditHours: 3,
+          prerequisites: ['course-0'],
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      });
+
+    fixture.componentInstance['lookupCurriculumId'].set('curr-1');
+    fixture.componentInstance['loadCurriculum']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/academic/curriculums/curr-1`).flush({
+      id: 'curr-1',
+      programId: 'prog-1',
+      version: 1,
+      courses: [{ courseId: 'course-1', isRequired: true }],
+      createdAt: '2026-01-01T00:00:00Z',
+    });
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.academic-curriculum__card').length).toBe(4);
+    expect(fixture.nativeElement.textContent).toContain('Computer Science');
   });
 
   it('creates a curriculum with required course entries', () => {

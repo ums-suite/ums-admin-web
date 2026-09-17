@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideApi } from '@ums/shared';
 import { UmsToastService } from '@ums/design-system';
 import { ConfirmationService } from '../../../shared/confirmation/confirmation.service';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { FinanceOversightComponent } from './finance-oversight.component';
 
@@ -54,6 +55,52 @@ describe('FinanceOversightComponent', () => {
 
     expect(fixture.componentInstance['store'].forbidden()).toBeTrue();
     expect(fixture.nativeElement.textContent).toContain('ownership-gated');
+  });
+
+  it('renders the loaded invoice/payment summaries and the gated refund section once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: ['finance.payment.refund'],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(FinanceOversightComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance['lookupInvoiceId'].set('inv-1');
+    fixture.componentInstance['loadInvoice']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/finance/invoices/inv-1`).flush({
+      id: 'inv-1',
+      sourceModule: 'Admission',
+      sourceReferenceId: 'app-1',
+      feeType: 'ApplicationFee',
+      ownerId: 'user-1',
+      totalAmount: 500,
+      currency: 'BDT',
+      status: 'Paid',
+      createdAt: '2026-01-01T00:00:00Z',
+      paidAt: '2026-01-02T00:00:00Z',
+    });
+
+    fixture.componentInstance['lookupPaymentId'].set('pay-1');
+    fixture.componentInstance['loadPayment']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/finance/payments/pay-1`).flush({
+      id: 'pay-1',
+      invoiceId: 'inv-1',
+      ownerId: 'user-1',
+      amount: 500,
+      currency: 'BDT',
+      status: 'Successful',
+      gatewayName: 'SSLCommerz',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-02T00:00:00Z',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('ApplicationFee');
+    expect(fixture.nativeElement.textContent).toContain('SSLCommerz');
+    expect(fixture.nativeElement.textContent).toContain('Process Refund');
   });
 
   it('does not submit a refund without a payment id or a positive amount', () => {

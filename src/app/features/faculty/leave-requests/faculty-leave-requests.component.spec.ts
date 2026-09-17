@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { provideApi } from '@ums/shared';
 import { UmsToastService } from '@ums/design-system';
 import { ConfirmationService } from '../../../shared/confirmation/confirmation.service';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { FacultyLeaveRequestsComponent } from './faculty-leave-requests.component';
 
@@ -77,6 +78,33 @@ describe('FacultyLeaveRequestsComponent', () => {
     const instance = fixture.componentInstance;
     const deptApproved = request({ status: 'DeptHeadApproved' });
     expect(instance['isAwaitingAuthority'](deptApproved)).toBeTrue();
+  });
+
+  it('renders action buttons for both Department Head and Authority stages once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: ['faculty.leave.approve.department', 'faculty.leave.approve.authority'],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(FacultyLeaveRequestsComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['facultyMemberId'].set('fac-1');
+    fixture.componentInstance['loadRequests']();
+    httpMock
+      .expectOne((r) => r.url === `${apiBaseUrl}/api/v1/faculty/leave-requests`)
+      .flush({
+        items: [request(), request({ id: 'leave-2', status: 'DeptHeadApproved' })],
+        totalCount: 2,
+        skip: 0,
+        take: 50,
+      });
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelectorAll('.faculty-leave-requests__button-row').length,
+    ).toBe(2);
   });
 
   it('approves by department head end to end with an audit-linked success toast', () => {

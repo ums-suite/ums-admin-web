@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideApi } from '@ums/shared';
 import { UmsToastService } from '@ums/design-system';
 import { ConfirmationService } from '../../../shared/confirmation/confirmation.service';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { AdmissionExamMeritComponent } from './admission-exam-merit.component';
 
@@ -64,6 +65,49 @@ describe('AdmissionExamMeritComponent', () => {
     httpMock.expectOne(`${apiBaseUrl}/api/v1/admission/exams/attempts/attempt-1`).flush(attempt);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('TabSwitch');
+  });
+
+  it('renders the gated action cards for a loaded attempt and merit list once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: [
+        'admission.application.review',
+        'admission.meritlist.generate',
+        'admission.meritlist.approve',
+      ],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(AdmissionExamMeritComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance['lookupAttemptId'].set('attempt-1');
+    fixture.componentInstance['loadExamAttempt']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/admission/exams/attempts/attempt-1`).flush(attempt);
+
+    fixture.componentInstance['lookupCampaignId'].set('campaign-1');
+    fixture.componentInstance['loadMeritList']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/admission/merit-lists/by-campaign/campaign-1`).flush({
+      ...meritList,
+      status: 'Draft',
+      entries: [
+        {
+          applicantId: 'ap-1',
+          applicationId: 'app-1',
+          programId: 'p-1',
+          score: 90,
+          rank: 1,
+          outcome: 'Admitted',
+          waitlistRank: null,
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Record Subjective Score');
+    expect(fixture.nativeElement.textContent).toContain('Approve Merit List');
+    expect(fixture.nativeElement.textContent).toContain('Promote Waitlisted Applicant');
   });
 
   it('records a subjective score end to end with an audit-linked success toast', () => {

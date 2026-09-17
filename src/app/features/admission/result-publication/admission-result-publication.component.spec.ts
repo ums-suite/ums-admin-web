@@ -198,6 +198,33 @@ describe('AdmissionResultPublicationComponent', () => {
     expect(fixture.componentInstance['store'].currentResult()?.status).toBe('Verified');
   });
 
+  it('renders the ready state button, then the completed state, walking the full wizard', () => {
+    const fixture = TestBed.createComponent(AdmissionResultPublicationComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['lookupCampaignId'].set('campaign-1');
+    fixture.componentInstance['loadCurrentResult']();
+    httpMock
+      .expectOne(`${apiBaseUrl}/api/v1/admission/results/by-campaign/campaign-1`)
+      .flush({ ...draftResult, status: 'Approved' });
+    fixture.componentInstance['startWizard']();
+    grantPermissions();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Confirm & Publish');
+
+    fixture.componentInstance['confirmAndSubmitCurrentStep']();
+    confirmation.confirm('publish now');
+    httpMock
+      .expectOne(`${apiBaseUrl}/api/v1/admission/results/result-1/publish`)
+      .flush({ ...draftResult, status: 'Publishing' });
+    httpMock
+      .expectOne((r) => r.url === `${apiBaseUrl}/api/v1/audit/entries`)
+      .flush({ items: [{ id: 'audit-9' }] });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('All steps completed');
+  });
+
   it('does not act without a campaign id', () => {
     const fixture = TestBed.createComponent(AdmissionResultPublicationComponent);
     fixture.detectChanges();

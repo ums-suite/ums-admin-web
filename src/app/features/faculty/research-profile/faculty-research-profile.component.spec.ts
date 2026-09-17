@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideApi } from '@ums/shared';
 import { UmsToastService } from '@ums/design-system';
 import { ConfirmationService } from '../../../shared/confirmation/confirmation.service';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { FacultyResearchProfileComponent } from './faculty-research-profile.component';
 
@@ -61,6 +62,28 @@ describe('FacultyResearchProfileComponent', () => {
 
     fixture.componentInstance['removeDraftPublication'](0);
     expect(fixture.componentInstance['draftPublications']().length).toBe(0);
+  });
+
+  it('renders publications and the gated edit section once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: ['faculty.research.update'],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(FacultyResearchProfileComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['facultyMemberId'].set('fac-1');
+    fixture.componentInstance['loadProfile']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/faculty/members/fac-1/research-profile`).flush({
+      ...profile,
+      publications: [{ title: 'A Study', venue: 'Journal', year: 2025, url: null }],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('A Study');
+    expect(fixture.nativeElement.textContent).toContain('Save Changes');
   });
 
   it('does not submit an update without a loaded profile', () => {

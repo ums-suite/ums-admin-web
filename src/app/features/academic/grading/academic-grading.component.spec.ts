@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { provideApi } from '@ums/shared';
 import { UmsToastService } from '@ums/design-system';
 import { ConfirmationService } from '../../../shared/confirmation/confirmation.service';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { AcademicGradingComponent } from './academic-grading.component';
 
@@ -59,6 +60,25 @@ describe('AcademicGradingComponent', () => {
     fixture.detectChanges();
     fixture.componentInstance['submitCorrection']();
     expect(confirmation.current()).toBeNull();
+  });
+
+  it('renders the gated correction section and draft score rows once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: ['academic.grade.correct'],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(AcademicGradingComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['assessmentIdInput'].set('assessment-1');
+    fixture.componentInstance['scoreInput'].set('72');
+    fixture.componentInstance['addDraftScore']();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Submit Correction');
+    expect(fixture.nativeElement.querySelectorAll('.academic-grading__score-row').length).toBe(1);
   });
 
   it('corrects a grade end to end with a mandatory reason and audit-linked success', () => {

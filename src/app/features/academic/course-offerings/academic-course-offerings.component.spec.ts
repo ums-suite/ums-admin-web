@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { AcademicCourseOfferingsComponent } from './academic-course-offerings.component';
 
@@ -133,6 +134,40 @@ describe('AcademicCourseOfferingsComponent', () => {
       assessments: [{ name: 'Written', weight: 0.7 }],
     });
     req.flush(offering);
+  });
+
+  it('renders the fully-populated offering detail and gated management sections once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock
+      .expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`)
+      .flush({ permissions: ['academic.courseoffering.manage'], scopeGrants: [] });
+
+    const fixture = TestBed.createComponent(AcademicCourseOfferingsComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['lookupOfferingId'].set('off-1');
+    fixture.componentInstance['loadOffering']();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/academic/course-offerings/off-1`).flush({
+      ...offering,
+      instructorFacultyMemberId: 'fac-1',
+      sections: [
+        { id: 'sec-1', code: 'A', dayOfWeek: 'Monday', start: '09:00:00', end: '10:00:00' },
+      ],
+      exams: [
+        {
+          id: 'exam-1',
+          name: 'Final',
+          assessments: [{ id: 'a-1', name: 'Written', weight: 1 }],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('fac-1');
+    expect(fixture.nativeElement.textContent).toContain('Final');
+    expect(
+      fixture.nativeElement.querySelectorAll('.academic-offerings__card').length,
+    ).toBeGreaterThan(0);
   });
 
   it('lists course offerings by semester', () => {

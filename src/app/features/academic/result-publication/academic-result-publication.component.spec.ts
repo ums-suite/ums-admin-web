@@ -30,12 +30,10 @@ describe('AcademicResultPublicationComponent', () => {
   });
 
   function grantPermissions(): void {
-    httpMock
-      .expectOne(permissionsUrl)
-      .flush({
-        permissions: ['academic.grade.lock', 'academic.result.approve', 'academic.result.publish'],
-        scopeGrants: [],
-      });
+    httpMock.expectOne(permissionsUrl).flush({
+      permissions: ['academic.grade.lock', 'academic.result.approve', 'academic.result.publish'],
+      scopeGrants: [],
+    });
   }
 
   function denyPermissions(): void {
@@ -166,6 +164,28 @@ describe('AcademicResultPublicationComponent', () => {
     fixture.detectChanges();
     fixture.componentInstance['rejectToFaculty']();
     expect(confirmation.current()).toBeNull();
+  });
+
+  it('renders the ready-state button and then the completed state after the final step', () => {
+    const fixture = TestBed.createComponent(AcademicResultPublicationComponent);
+    fixture.detectChanges();
+    fixture.componentInstance['courseOfferingId'].set('off-1');
+    fixture.componentInstance['startStageIndex'].set('3');
+    fixture.componentInstance['startWizard']();
+    grantPermissions();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Confirm & Archive');
+
+    fixture.componentInstance['confirmAndSubmitCurrentStep']();
+    confirmation.confirm('archive now');
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/academic/results/off-1/archive`).flush(rp('Archived'));
+    httpMock
+      .expectOne((r) => r.url === `${apiBaseUrl}/api/v1/audit/entries`)
+      .flush({ items: [{ id: 'audit-3' }] });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('All steps completed');
   });
 
   it('leaveRevokedFlow clears the wizard', () => {

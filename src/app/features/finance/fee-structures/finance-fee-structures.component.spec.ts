@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { PermissionsService } from '../../../core/auth/permissions/permissions.service';
 import { APP_CONFIG, DEFAULT_APP_CONFIG } from '../../../core/config/app-config';
 import { FinanceFeeStructuresComponent } from './finance-fee-structures.component';
 
@@ -54,6 +55,25 @@ describe('FinanceFeeStructuresComponent', () => {
     fixture.componentInstance['submitCreate']();
     httpMock.expectNone(`${apiBaseUrl}/api/v1/finance/fee-structures`);
     expect(fixture.componentInstance['store'].feeStructures()).toEqual([]);
+  });
+
+  it('renders both gated config sections and the Service-applicability field once permitted', () => {
+    const permissions = TestBed.inject(PermissionsService);
+    permissions.load().subscribe();
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/me/permissions`).flush({
+      permissions: ['finance.feestructure.manage'],
+      scopeGrants: [],
+    });
+
+    const fixture = TestBed.createComponent(FinanceFeeStructuresComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.finance-fee-structures__section').length).toBe(
+      2,
+    );
+
+    fixture.componentInstance['newApplicabilityType'].set('Service');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Service name');
   });
 
   it('creates a Program-scoped fee structure with the composed request body', () => {
