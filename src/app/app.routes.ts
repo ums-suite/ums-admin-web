@@ -151,6 +151,30 @@ export const routes: Routes = [
               ),
             data: { label: 'Academic -- Course Offerings' },
           },
+          {
+            path: 'grading',
+            canActivate: [permissionGuard(PERMISSION_KEYS.academic.gradeCorrect)],
+            loadComponent: () =>
+              import('./features/academic/grading/academic-grading.component').then(
+                (m) => m.AcademicGradingComponent,
+              ),
+            data: { label: 'Academic -- Grade Correction' },
+          },
+          {
+            path: 'result-publication',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.academic.gradeLock,
+                PERMISSION_KEYS.academic.resultApprove,
+                PERMISSION_KEYS.academic.resultPublish,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/academic/result-publication/academic-result-publication.component').then(
+                (m) => m.AcademicResultPublicationComponent,
+              ),
+            data: { label: 'Academic -- Result Publication' },
+          },
         ],
       },
       {

@@ -1,0 +1,47 @@
+.academic-grading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.academic-grading__section {
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+  background: var(--color-surface);
+
+  h2 {
+    margin-block-start: 0;
+    font-size: 1rem;
+  }
+}
+
+.academic-grading__card {
+  padding: var(--space-3, 12px);
+  margin-block: var(--space-3, 12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+
+  h3 {
+    margin-block-start: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.academic-grading__score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  padding-block: var(--space-1, 4px);
+}
+
+.academic-grading__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}

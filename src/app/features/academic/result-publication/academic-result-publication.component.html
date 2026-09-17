@@ -1,0 +1,97 @@
+<div class="academic-result-publication">
+  <h1>Academic Result Publication</h1>
+  <p class="academic-result-publication__note">
+    A deliberately slow, elevated-permission, multi-step action -- never a side effect of any other
+    screen. ums-core has no read endpoint for this entity -- pick the batch's real current stage
+    yourself (e.g. from the Audit Log); picking wrong is safe, it just 409s with the real status.
+  </p>
+
+  <section class="academic-result-publication__section">
+    <h2>Start</h2>
+    <ums-form-field #offeringField="umsFormField" label="Course offering id" [required]="true">
+      <ums-input
+        [id]="offeringField.controlId()"
+        [value]="courseOfferingId()"
+        (valueChange)="courseOfferingId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #stageField="umsFormField" label="Starting stage">
+      <ums-select
+        [id]="stageField.controlId()"
+        [options]="startStageOptions"
+        [value]="startStageIndex()"
+        (valueChange)="startStageIndex.set($event)"
+      />
+    </ums-form-field>
+    <div class="academic-result-publication__button-row">
+      <ums-button
+        *appHasPermission="[
+          permissionKeys.academic.gradeLock,
+          permissionKeys.academic.resultApprove,
+          permissionKeys.academic.resultPublish,
+        ]"
+        (click)="startWizard()"
+      >
+        Start Wizard
+      </ums-button>
+      <ums-button
+        variant="danger"
+        *appHasPermission="permissionKeys.academic.gradeLock"
+        (click)="rejectToFaculty()"
+      >
+        Reject to Faculty (instead of Lock)
+      </ums-button>
+    </div>
+
+    @if (store.currentResult(); as result) {
+      <p class="academic-result-publication__note">
+        Last known status for this batch: {{ result.status }} (correction count:
+        {{ result.correctionCount }}).
+      </p>
+    }
+  </section>
+
+  @if (wizard(); as w) {
+    <section class="academic-result-publication__section">
+      <h2>Wizard</h2>
+      <ums-stepper [steps]="stepperSteps()" [currentIndex]="w.stepIndex()" />
+
+      @switch (w.status()) {
+        @case ('authorizing') {
+          <p>Checking your authorization for this step...</p>
+        }
+        @case ('ready') {
+          <div class="academic-result-publication__card">
+            <h3>{{ w.currentStep().label }}</h3>
+            <p>{{ w.currentStep().description }}</p>
+            <ums-button (click)="confirmAndSubmitCurrentStep()">
+              Confirm &amp; {{ w.currentStep().label }}
+            </ums-button>
+          </div>
+        }
+        @case ('submitting') {
+          <p>Submitting {{ w.currentStep().label }}...</p>
+        }
+        @case ('error') {
+          <app-version-conflict-banner
+            [message]="w.errorMessage() ?? 'This batch is not in the expected state for this step.'"
+            reloadLabel="Start over"
+            (reload)="reloadAfterConflict()"
+          />
+        }
+        @case ('revoked') {
+          <app-permission-revoked-banner
+            actionLabel="Academic Result Publication"
+            (leave)="leaveRevokedFlow()"
+          />
+        }
+        @case ('completed') {
+          <p class="academic-result-publication__success">
+            All steps completed for this session. The batch's current status is
+            {{ w.context().result?.status }}.
+          </p>
+        }
+      }
+    </section>
+  }
+</div>

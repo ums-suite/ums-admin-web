@@ -1,0 +1,75 @@
+<div class="academic-grading">
+  <h1>Grade Correction</h1>
+  <p class="academic-grading__note">
+    The only control for changing a published grade. There is no raw edit form -- ums-core has no
+    <code>GET /grades/{{ '{id}' }}</code> endpoint at all, so this correction call is also the only
+    way to see the resulting grade. A reason is mandatory.
+  </p>
+
+  <section
+    class="academic-grading__section"
+    *appHasPermission="permissionKeys.academic.gradeCorrect"
+  >
+    <ums-form-field #gradeIdField="umsFormField" label="Grade id" [required]="true">
+      <ums-input
+        [id]="gradeIdField.controlId()"
+        [value]="gradeId()"
+        (valueChange)="gradeId.set($event)"
+      />
+    </ums-form-field>
+
+    <div class="academic-grading__card">
+      <h3>Corrected Assessment Scores</h3>
+      @for (score of draftScores(); track $index) {
+        <div class="academic-grading__score-row">
+          <span>{{ score.assessmentId }}: {{ score.score }}</span>
+          <ums-button variant="ghost" size="sm" (click)="removeDraftScore($index)"
+            >Remove</ums-button
+          >
+        </div>
+      }
+      <ums-form-field #assessmentIdField="umsFormField" label="Assessment id">
+        <ums-input
+          [id]="assessmentIdField.controlId()"
+          [value]="assessmentIdInput()"
+          (valueChange)="assessmentIdInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #scoreField="umsFormField" label="Score">
+        <ums-input
+          type="number"
+          [id]="scoreField.controlId()"
+          [value]="scoreInput()"
+          (valueChange)="scoreInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" size="sm" (click)="addDraftScore()">Add Score</ums-button>
+    </div>
+
+    <ums-button (click)="submitCorrection()">Submit Correction</ums-button>
+  </section>
+
+  <section class="academic-grading__section">
+    <h2>After a Correction</h2>
+    <p class="academic-grading__note">
+      A correction re-enters the batch's ResultPublication at Verified server-side -- it needs a
+      fresh Approve and Publish to become visible again.
+    </p>
+    <ums-button variant="secondary" size="sm" (click)="goToResultPublication()">
+      Go to Result Publication
+    </ums-button>
+  </section>
+
+  <section class="academic-grading__section">
+    <h2>Reviewer on Leave?</h2>
+    <p class="academic-grading__note">
+      ums-core's LeaveRequest approval chain has no delegate/escalation mechanism, and grade-related
+      permissions have no per-request delegate routing (confirmed gaps). The interim path is
+      temporarily granting the relevant permission to a covering staff member via Role &amp;
+      Permission-bundle administration, then revoking it once the absence ends.
+    </p>
+    <ums-button variant="secondary" size="sm" (click)="goToRoleManagement()">
+      Go to Role Management
+    </ums-button>
+  </section>
+</div>
