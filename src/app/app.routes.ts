@@ -211,7 +211,48 @@ export const routes: Routes = [
         ],
       },
       { path: 'faculty', loadComponent: placeholder, data: { label: 'Faculty & HR' } },
-      { path: 'finance', loadComponent: placeholder, data: { label: 'Finance' } },
+      {
+        path: 'finance',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'fee-structures' },
+          {
+            path: 'fee-structures',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.feeStructureManage)],
+            loadComponent: () =>
+              import('./features/finance/fee-structures/finance-fee-structures.component').then(
+                (m) => m.FinanceFeeStructuresComponent,
+              ),
+            data: { label: 'Finance -- Fee Structures' },
+          },
+          {
+            path: 'oversight',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.paymentRefund)],
+            loadComponent: () =>
+              import('./features/finance/oversight/finance-oversight.component').then(
+                (m) => m.FinanceOversightComponent,
+              ),
+            data: { label: 'Finance -- Invoice & Payment Oversight' },
+          },
+          {
+            path: 'ledger',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.ledgerRead)],
+            loadComponent: () =>
+              import('./features/finance/ledger/finance-ledger.component').then(
+                (m) => m.FinanceLedgerComponent,
+              ),
+            data: { label: 'Finance -- Ledger' },
+          },
+          {
+            path: 'reconciliation',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.reconciliationReview)],
+            loadComponent: () =>
+              import('./features/finance/reconciliation/finance-reconciliation.component').then(
+                (m) => m.FinanceReconciliationComponent,
+              ),
+            data: { label: 'Finance -- Reconciliation' },
+          },
+        ],
+      },
       { path: 'hostel', loadComponent: placeholder, data: { label: 'Hostel' } },
       { path: 'library', loadComponent: placeholder, data: { label: 'Library' } },
       { path: 'content', loadComponent: placeholder, data: { label: 'Content' } },

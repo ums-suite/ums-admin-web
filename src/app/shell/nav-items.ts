@@ -24,7 +24,7 @@ export const NAV_ITEMS: readonly AdminNavItem[] = [
   { path: '/academic/curriculum', label: 'Academic', icon: 'book-open' },
   { path: '/student/records', label: 'Students', icon: 'student' },
   { path: '/faculty', label: 'Faculty & HR', icon: 'chalkboard-teacher' },
-  { path: '/finance', label: 'Finance', icon: 'currency-circle-dollar' },
+  { path: '/finance/fee-structures', label: 'Finance', icon: 'currency-circle-dollar' },
   { path: '/hostel', label: 'Hostel', icon: 'map-pin' },
   { path: '/library', label: 'Library', icon: 'book-bookmark' },
   { path: '/content', label: 'Content', icon: 'file-text' },

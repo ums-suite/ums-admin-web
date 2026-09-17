@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { FacultyStore } from '../../features/faculty/state/faculty.store';
-import { FinanceStore } from '../../features/finance/state/finance.store';
 import { HostelStore } from '../../features/hostel/state/hostel.store';
 import { LibraryStore } from '../../features/library/state/library.store';
 import { AlumniStore } from '../../features/alumni/state/alumni.store';
@@ -19,7 +18,6 @@ import { AuditStore } from '../../features/audit/state/audit.store';
  */
 const scaffoldStores = [
   ['FacultyStore', FacultyStore],
-  ['FinanceStore', FinanceStore],
   ['HostelStore', HostelStore],
   ['LibraryStore', LibraryStore],
   ['AlumniStore', AlumniStore],

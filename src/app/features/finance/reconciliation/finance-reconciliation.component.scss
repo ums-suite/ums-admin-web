@@ -1,0 +1,10 @@
+.finance-reconciliation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}

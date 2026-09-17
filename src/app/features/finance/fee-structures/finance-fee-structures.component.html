@@ -1,0 +1,118 @@
+<div class="finance-fee-structures">
+  <div class="finance-fee-structures__toolbar">
+    <h1>Fee Structures</h1>
+    <ums-button variant="secondary" (click)="loadFeeStructures()">Load All</ums-button>
+  </div>
+  <p class="finance-fee-structures__note">
+    ums-core supports no server-side filtering here -- sort/filter below runs client-side over the
+    full list. Each row is one version; publishing a new version deprecates the prior Active row.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="finance-fee-structures__error">{{ store.error() }}</p>
+  }
+
+  <ums-data-table
+    [columns]="columns"
+    [rows]="store.feeStructures()"
+    [rowId]="rowId"
+    emptyMessage="No fee structures loaded yet."
+    caption="Fee structures"
+  />
+
+  <section
+    class="finance-fee-structures__section"
+    *appHasPermission="permissionKeys.finance.feeStructureManage"
+  >
+    <h2>Create Fee Structure</h2>
+    <ums-form-field #feeTypeField="umsFormField" label="Fee type" [required]="true">
+      <ums-input
+        [id]="feeTypeField.controlId()"
+        [value]="newFeeType()"
+        (valueChange)="newFeeType.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #applicabilityField="umsFormField" label="Applicability type" [required]="true">
+      <ums-select
+        [id]="applicabilityField.controlId()"
+        [options]="applicabilityOptions"
+        [value]="newApplicabilityType()"
+        (valueChange)="newApplicabilityType.set($event)"
+      />
+    </ums-form-field>
+    @if (newApplicabilityType() === 'Service') {
+      <ums-form-field #serviceNameField="umsFormField" label="Service name" [required]="true">
+        <ums-input
+          [id]="serviceNameField.controlId()"
+          [value]="newApplicabilityServiceName()"
+          (valueChange)="newApplicabilityServiceName.set($event)"
+        />
+      </ums-form-field>
+    } @else {
+      <ums-form-field
+        #referenceIdField="umsFormField"
+        label="Program/Campaign id"
+        [required]="true"
+      >
+        <ums-input
+          [id]="referenceIdField.controlId()"
+          [value]="newApplicabilityReferenceId()"
+          (valueChange)="newApplicabilityReferenceId.set($event)"
+        />
+      </ums-form-field>
+    }
+    <ums-form-field #amountField="umsFormField" label="Amount" [required]="true">
+      <ums-input
+        type="number"
+        [id]="amountField.controlId()"
+        [value]="newAmount()"
+        (valueChange)="newAmount.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #currencyField="umsFormField" label="Currency">
+      <ums-input
+        [id]="currencyField.controlId()"
+        [value]="newCurrency()"
+        (valueChange)="newCurrency.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #effectiveFromField="umsFormField" label="Effective from">
+      <ums-date-picker
+        [id]="effectiveFromField.controlId()"
+        [value]="newEffectiveFrom()"
+        (valueChange)="newEffectiveFrom.set($event)"
+      />
+    </ums-form-field>
+    <ums-button (click)="submitCreate()">Create</ums-button>
+  </section>
+
+  <section
+    class="finance-fee-structures__section"
+    *appHasPermission="permissionKeys.finance.feeStructureManage"
+  >
+    <h2>Publish New Version</h2>
+    <ums-form-field #versionIdField="umsFormField" label="Fee structure id" [required]="true">
+      <ums-input
+        [id]="versionIdField.controlId()"
+        [value]="versionFeeStructureId()"
+        (valueChange)="versionFeeStructureId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #versionAmountField="umsFormField" label="New amount" [required]="true">
+      <ums-input
+        type="number"
+        [id]="versionAmountField.controlId()"
+        [value]="versionAmount()"
+        (valueChange)="versionAmount.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #versionEffectiveFromField="umsFormField" label="Effective from">
+      <ums-date-picker
+        [id]="versionEffectiveFromField.controlId()"
+        [value]="versionEffectiveFrom()"
+        (valueChange)="versionEffectiveFrom.set($event)"
+      />
+    </ums-form-field>
+    <ums-button (click)="submitNewVersion()">Publish New Version</ums-button>
+  </section>
+</div>
