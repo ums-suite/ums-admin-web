@@ -113,7 +113,10 @@ export const routes: Routes = [
           {
             path: 'records',
             canActivate: [permissionGuard(PERMISSION_KEYS.student.profileRead)],
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/student/records/student-records.component').then(
+                (m) => m.StudentRecordsComponent,
+              ),
             data: { label: 'Students -- Records' },
           },
           {
