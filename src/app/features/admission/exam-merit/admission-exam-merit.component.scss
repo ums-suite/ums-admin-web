@@ -1,0 +1,70 @@
+.admission-exam-merit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.admission-exam-merit__section {
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+  background: var(--color-surface);
+
+  h2 {
+    margin-block-start: 0;
+    font-size: 1rem;
+  }
+}
+
+.admission-exam-merit__lookup {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3, 12px);
+  margin-block-end: var(--space-3, 12px);
+}
+
+.admission-exam-merit__summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2, 8px) var(--space-3, 12px);
+  margin-block: var(--space-3, 12px);
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.admission-exam-merit__card {
+  padding: var(--space-3, 12px);
+  margin-block-start: var(--space-3, 12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+
+  h3 {
+    margin-block-start: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.admission-exam-merit__button-row {
+  display: flex;
+  gap: var(--space-2, 8px);
+}
+
+.admission-exam-merit__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.admission-exam-merit__error {
+  color: var(--color-danger);
+}

@@ -103,6 +103,24 @@ export const routes: Routes = [
               ),
             data: { label: 'Admissions -- Applicant Review' },
           },
+          {
+            path: 'exam-merit',
+            canActivate: [permissionGuard(PERMISSION_KEYS.admission.applicationReview)],
+            loadComponent: () =>
+              import('./features/admission/exam-merit/admission-exam-merit.component').then(
+                (m) => m.AdmissionExamMeritComponent,
+              ),
+            data: { label: 'Admissions -- Exam Attempts & Merit List' },
+          },
+          {
+            path: 'result-publication',
+            canActivate: [permissionGuard(PERMISSION_KEYS.admission.resultPublish)],
+            loadComponent: () =>
+              import('./features/admission/result-publication/admission-result-publication.component').then(
+                (m) => m.AdmissionResultPublicationComponent,
+              ),
+            data: { label: 'Admissions -- Result Publication' },
+          },
         ],
       },
       {

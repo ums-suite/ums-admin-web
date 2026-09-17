@@ -40,7 +40,8 @@ export class ResultPublicationWizard<TContext> {
   });
 
   constructor(
-    private readonly steps: readonly ResultPublicationStepDefinition<TContext>[],
+    /** Exposed read-only so a hosting component can render step labels (e.g. in a `ums-stepper`) without this class depending on any UI library. */
+    readonly steps: readonly ResultPublicationStepDefinition<TContext>[],
     initialContext: TContext,
     private readonly deps: ResultPublicationWizardDeps,
   ) {

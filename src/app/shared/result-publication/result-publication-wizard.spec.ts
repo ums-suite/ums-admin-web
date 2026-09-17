@@ -230,6 +230,12 @@ describe('ResultPublicationWizard', () => {
     });
   });
 
+  it('exposes its step list publicly for UI consumers to render labels from', () => {
+    const steps = makeSteps();
+    const wizard = new ResultPublicationWizard(steps, { value: 0 }, { revalidate: () => of(true) });
+    expect(wizard.steps.map((s) => s.label)).toEqual(['Lock', 'Approve', 'Publish']);
+  });
+
   it('typed context accessor exposes the live context signal, not a snapshot', () => {
     const wizard = new ResultPublicationWizard(
       makeSteps(),
