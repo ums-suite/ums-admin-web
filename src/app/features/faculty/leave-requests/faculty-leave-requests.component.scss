@@ -1,0 +1,37 @@
+.faculty-leave-requests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.faculty-leave-requests__lookup {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3, 12px);
+}
+
+.faculty-leave-requests__table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+    text-align: start;
+    border-block-end: 1px solid var(--color-border);
+  }
+}
+
+.faculty-leave-requests__button-row {
+  display: flex;
+  gap: var(--space-2, 8px);
+}
+
+.faculty-leave-requests__error {
+  color: var(--color-danger);
+}

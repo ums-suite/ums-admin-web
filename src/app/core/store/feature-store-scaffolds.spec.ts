@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { FacultyStore } from '../../features/faculty/state/faculty.store';
 import { HostelStore } from '../../features/hostel/state/hostel.store';
 import { LibraryStore } from '../../features/library/state/library.store';
 import { AlumniStore } from '../../features/alumni/state/alumni.store';
@@ -14,10 +13,9 @@ import { AuditStore } from '../../features/audit/state/audit.store';
  * are intentionally trivial until their own module tickets flesh them out (see each store's own
  * class doc for which ticket that is). `AcademicStore` was removed from this list once ADMIN-18
  * fleshed it out into real per-entity stores (`features/academic/state/`) -- see those stores' own
- * specs instead.
+ * specs instead. `FacultyStore` was likewise removed once ADMIN-26 fleshed it out.
  */
 const scaffoldStores = [
-  ['FacultyStore', FacultyStore],
   ['HostelStore', HostelStore],
   ['LibraryStore', LibraryStore],
   ['AlumniStore', AlumniStore],

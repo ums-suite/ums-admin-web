@@ -210,7 +210,58 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'faculty', loadComponent: placeholder, data: { label: 'Faculty & HR' } },
+      {
+        path: 'faculty',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'members' },
+          {
+            path: 'members',
+            canActivate: [permissionGuard(PERMISSION_KEYS.faculty.profileRead)],
+            loadComponent: () =>
+              import('./features/faculty/members/faculty-members.component').then(
+                (m) => m.FacultyMembersComponent,
+              ),
+            data: { label: 'Faculty -- Members' },
+          },
+          {
+            path: 'course-assignments',
+            canActivate: [permissionGuard(PERMISSION_KEYS.faculty.courseAssignmentRead)],
+            loadComponent: () =>
+              import('./features/faculty/course-assignments/faculty-course-assignments.component').then(
+                (m) => m.FacultyCourseAssignmentsComponent,
+              ),
+            data: { label: 'Faculty -- Course Assignments' },
+          },
+          {
+            path: 'leave-requests',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.faculty.leaveApproveDepartment,
+                PERMISSION_KEYS.faculty.leaveApproveAuthority,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/faculty/leave-requests/faculty-leave-requests.component').then(
+                (m) => m.FacultyLeaveRequestsComponent,
+              ),
+            data: { label: 'Faculty -- Leave Requests' },
+          },
+          {
+            path: 'research-profile',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.faculty.researchUpdate,
+                PERMISSION_KEYS.faculty.researchPublish,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/faculty/research-profile/faculty-research-profile.component').then(
+                (m) => m.FacultyResearchProfileComponent,
+              ),
+            data: { label: 'Faculty -- Research Profile' },
+          },
+        ],
+      },
       {
         path: 'finance',
         children: [

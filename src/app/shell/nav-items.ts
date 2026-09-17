@@ -23,7 +23,7 @@ export const NAV_ITEMS: readonly AdminNavItem[] = [
   { path: '/admission/campaigns', label: 'Admissions', icon: 'clipboard-text' },
   { path: '/academic/curriculum', label: 'Academic', icon: 'book-open' },
   { path: '/student/records', label: 'Students', icon: 'student' },
-  { path: '/faculty', label: 'Faculty & HR', icon: 'chalkboard-teacher' },
+  { path: '/faculty/members', label: 'Faculty & HR', icon: 'chalkboard-teacher' },
   { path: '/finance/fee-structures', label: 'Finance', icon: 'currency-circle-dollar' },
   { path: '/hostel', label: 'Hostel', icon: 'map-pin' },
   { path: '/library', label: 'Library', icon: 'book-bookmark' },
