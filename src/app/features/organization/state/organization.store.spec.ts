@@ -235,7 +235,7 @@ describe('OrganizationStore', () => {
     expect(store.rooms()).toEqual([]);
   });
 
-  it('creates a room', () => {
+  it("creates a room and reloads that building's room list", () => {
     let created: unknown;
     store
       .createRoom({ buildingId: 'b1', name: '101', capacity: 40, roomType: 'Classroom' })
@@ -250,6 +250,9 @@ describe('OrganizationStore', () => {
         roomType: 'Classroom',
         createdAt: '2026-01-01T00:00:00Z',
       });
+    httpMock
+      .expectOne((r) => r.url === `${apiBaseUrl}/api/v1/organization/buildings/b1/rooms`)
+      .flush(page);
     expect(created).toEqual({
       id: 'room1',
       buildingId: 'b1',

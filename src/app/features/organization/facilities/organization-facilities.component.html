@@ -1,0 +1,168 @@
+<div class="org-facilities">
+  <section class="org-facilities__panel">
+    <div class="org-facilities__panel-header">
+      <h2>Buildings</h2>
+      <ums-button
+        *appHasPermission="permissionKeys.organization.manage"
+        size="sm"
+        (click)="openCreateBuildingModal()"
+      >
+        New Building
+      </ums-button>
+    </div>
+
+    @if (store.error()) {
+      <p role="alert" class="org-facilities__error">{{ store.error() }}</p>
+    }
+
+    <table class="org-facilities__table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Code</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (building of store.buildings(); track building.id) {
+          <tr [class.org-facilities__row--selected]="selectedBuilding()?.id === building.id">
+            <td>{{ building.name }}</td>
+            <td>{{ building.code ?? '--' }}</td>
+            <td class="org-facilities__row-actions">
+              <ums-button variant="ghost" size="sm" (click)="selectBuilding(building)"
+                >View rooms</ums-button
+              >
+              <ums-button
+                *appHasPermission="permissionKeys.organization.manage"
+                variant="secondary"
+                size="sm"
+                (click)="deleteBuilding(building)"
+              >
+                Delete
+              </ums-button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3">No buildings yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  @if (selectedBuilding(); as building) {
+    <section class="org-facilities__panel">
+      <div class="org-facilities__panel-header">
+        <h2>Rooms in {{ building.name }}</h2>
+        <ums-button
+          *appHasPermission="permissionKeys.organization.manage"
+          size="sm"
+          (click)="openCreateRoomModal()"
+        >
+          New Room
+        </ums-button>
+      </div>
+      <table class="org-facilities__table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Capacity</th>
+            <th scope="col">Type</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (room of store.rooms(); track room.id) {
+            <tr>
+              <td>{{ room.name }}</td>
+              <td class="ums-tnum">{{ room.capacity ?? '--' }}</td>
+              <td>{{ room.roomType ?? '--' }}</td>
+              <td>
+                <ums-button
+                  *appHasPermission="permissionKeys.organization.manage"
+                  variant="secondary"
+                  size="sm"
+                  (click)="deleteRoom(room)"
+                >
+                  Delete
+                </ums-button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">No rooms registered for this building yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</div>
+
+<ums-modal
+  [open]="createBuildingModalOpen()"
+  title="New Building"
+  (closed)="createBuildingModalOpen.set(false)"
+>
+  <ums-form-field #campusIdField="umsFormField" label="Campus id" [required]="true">
+    <ums-input
+      [id]="campusIdField.controlId()"
+      [value]="newBuildingCampusId()"
+      (valueChange)="newBuildingCampusId.set($event)"
+    />
+  </ums-form-field>
+  <ums-form-field #nameField="umsFormField" label="Name" [required]="true">
+    <ums-input
+      [id]="nameField.controlId()"
+      [value]="newBuildingName()"
+      (valueChange)="newBuildingName.set($event)"
+    />
+  </ums-form-field>
+  <ums-form-field #codeField="umsFormField" label="Code (optional)">
+    <ums-input
+      [id]="codeField.controlId()"
+      [value]="newBuildingCode()"
+      (valueChange)="newBuildingCode.set($event)"
+    />
+  </ums-form-field>
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="createBuildingModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitCreateBuilding()">Create</ums-button>
+  </div>
+</ums-modal>
+
+<ums-modal
+  [open]="createRoomModalOpen()"
+  title="New Room"
+  (closed)="createRoomModalOpen.set(false)"
+>
+  <ums-form-field #roomNameField="umsFormField" label="Name" [required]="true">
+    <ums-input
+      [id]="roomNameField.controlId()"
+      [value]="newRoomName()"
+      (valueChange)="newRoomName.set($event)"
+    />
+  </ums-form-field>
+  <ums-form-field #capacityField="umsFormField" label="Capacity (optional)">
+    <ums-input
+      type="number"
+      [id]="capacityField.controlId()"
+      [value]="newRoomCapacity()"
+      (valueChange)="newRoomCapacity.set($event)"
+    />
+  </ums-form-field>
+  <ums-form-field #roomTypeField="umsFormField" label="Room type (optional)">
+    <ums-input
+      [id]="roomTypeField.controlId()"
+      [value]="newRoomType()"
+      (valueChange)="newRoomType.set($event)"
+    />
+  </ums-form-field>
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="createRoomModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitCreateRoom()">Create</ums-button>
+  </div>
+</ums-modal>

@@ -75,7 +75,10 @@ export const routes: Routes = [
       {
         path: 'organization',
         canActivate: [permissionGuard(PERMISSION_KEYS.organization.read)],
-        loadComponent: placeholder,
+        loadComponent: () =>
+          import('./features/organization/organization.component').then(
+            (m) => m.OrganizationComponent,
+          ),
         data: { label: 'Organization' },
       },
       {

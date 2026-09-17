@@ -1,0 +1,25 @@
+<div class="organization">
+  <h1>Organization</h1>
+  <ums-tab-bar
+    #tabBar="umsTabBar"
+    [items]="tabs"
+    [selectedIndex]="selectedTabIndex()"
+    (selectedIndexChange)="onTabChange($event)"
+  />
+
+  <div [attr.id]="tabBar.panelId(0)" role="tabpanel" [hidden]="selectedTabIndex() !== 0">
+    @if (selectedTabIndex() === 0) {
+      <app-organization-hierarchy />
+    }
+  </div>
+  <div [attr.id]="tabBar.panelId(1)" role="tabpanel" [hidden]="selectedTabIndex() !== 1">
+    @if (selectedTabIndex() === 1) {
+      <app-organization-designations />
+    }
+  </div>
+  <div [attr.id]="tabBar.panelId(2)" role="tabpanel" [hidden]="selectedTabIndex() !== 2">
+    @if (selectedTabIndex() === 2) {
+      <app-organization-facilities />
+    }
+  </div>
+</div>
