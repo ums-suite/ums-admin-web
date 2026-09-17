@@ -1,0 +1,130 @@
+<div class="applicant-review">
+  <h1>Applicant Review</h1>
+
+  <section class="applicant-review__lookup">
+    <ums-form-field #lookupField="umsFormField" label="Application id">
+      <ums-input
+        [id]="lookupField.controlId()"
+        [value]="lookupApplicationId()"
+        (valueChange)="lookupApplicationId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadApplication()">Load</ums-button>
+  </section>
+  <p class="applicant-review__note">
+    No applicant/application search endpoint exists in ums-core today -- lookup is by Application id
+    only (e.g. from the applicant's own confirmation, or the Audit Log).
+  </p>
+
+  <div class="applicant-review__workspace">
+    <section class="applicant-review__detail">
+      <h2>Application Detail</h2>
+
+      @if (store.isLoading()) {
+        <p>Loading...</p>
+      }
+
+      @if (store.forbidden()) {
+        <p role="alert" class="applicant-review__forbidden">
+          Access denied loading this application directly. ums-core's Admission
+          <code>OwnershipGuard</code> only allows the owning applicant to fetch this endpoint --
+          unlike Library/Hostel, it has no staff-permission bypass yet (a confirmed backend gap,
+          flagged for a fix). You can still act on this application/its documents below by id if you
+          already know them from another channel.
+        </p>
+      } @else if (store.error()) {
+        <p role="alert" class="applicant-review__error">{{ store.error() }}</p>
+      }
+
+      @if (store.currentApplication(); as application) {
+        <dl class="applicant-review__summary">
+          <dt>Status</dt>
+          <dd>
+            <ums-badge variant="info">{{ application.status }}</ums-badge>
+          </dd>
+          <dt>Application number</dt>
+          <dd>{{ application.applicationNumber ?? '--' }}</dd>
+          <dt>Program choices</dt>
+          <dd>
+            @for (choice of application.programChoices; track choice.programId) {
+              <div>#{{ choice.rank }} -- {{ choice.programId }}</div>
+            }
+          </dd>
+          <dt>Application fee</dt>
+          <dd>{{ application.isApplicationFeePaid ? 'Paid' : 'Unpaid' }}</dd>
+          <dt>Confirmation fee</dt>
+          <dd>{{ application.isConfirmationFeePaid ? 'Paid' : 'Unpaid' }}</dd>
+          <dt>Admission test assignment</dt>
+          <dd>
+            @if (application.assignedTestSlotId) {
+              Roll {{ application.rollNumber }} (slot {{ application.assignedTestSlotId }}) --
+              assigned automatically once locked, not a manual action here.
+            } @else {
+              Not yet assigned (automatic, once this application is locked).
+            }
+          </dd>
+        </dl>
+
+        <h3>Documents</h3>
+        <table class="applicant-review__documents">
+          <thead>
+            <tr>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col">File</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (document of application.documents; track document.id) {
+              <tr>
+                <td>{{ document.documentType }}</td>
+                <td>
+                  <ums-badge [variant]="document.status === 'Approved' ? 'success' : 'neutral'">{{
+                    document.status
+                  }}</ums-badge>
+                  @if (document.rejectionReason) {
+                    <div class="applicant-review__rejection">{{ document.rejectionReason }}</div>
+                  }
+                </td>
+                <td><a [href]="document.fileReference" target="_blank" rel="noopener">View</a></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">No documents uploaded.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+
+    <section
+      class="applicant-review__actions"
+      *appHasPermission="permissionKeys.admission.applicationReview"
+    >
+      <h2>Decision Actions</h2>
+      <ums-form-field #appIdField="umsFormField" label="Application id" [required]="true">
+        <ums-input
+          [id]="appIdField.controlId()"
+          [value]="actionApplicationId()"
+          (valueChange)="actionApplicationId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #docIdField="umsFormField" label="Document id (for document actions)">
+        <ums-input
+          [id]="docIdField.controlId()"
+          [value]="actionDocumentId()"
+          (valueChange)="actionDocumentId.set($event)"
+        />
+      </ums-form-field>
+
+      <div class="applicant-review__action-buttons">
+        <ums-button variant="secondary" (click)="approveDocument()">Approve Document</ums-button>
+        <ums-button variant="secondary" (click)="requestResubmission()">
+          Request Resubmission
+        </ums-button>
+        <ums-button variant="danger" (click)="declineApplication()">Decline Application</ums-button>
+      </div>
+    </section>
+  </div>
+</div>

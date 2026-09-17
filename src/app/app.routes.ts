@@ -88,13 +88,19 @@ export const routes: Routes = [
           {
             path: 'campaigns',
             canActivate: [permissionGuard(PERMISSION_KEYS.admission.campaignManage)],
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/admission/campaigns/campaign-configuration.component').then(
+                (m) => m.CampaignConfigurationComponent,
+              ),
             data: { label: 'Admissions -- Campaigns' },
           },
           {
             path: 'applicant-review',
             canActivate: [permissionGuard(PERMISSION_KEYS.admission.applicationReview)],
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/admission/applicant-review/applicant-review.component').then(
+                (m) => m.ApplicantReviewComponent,
+              ),
             data: { label: 'Admissions -- Applicant Review' },
           },
         ],
