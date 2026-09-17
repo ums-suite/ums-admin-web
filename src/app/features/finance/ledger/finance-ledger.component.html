@@ -1,0 +1,55 @@
+<div class="finance-ledger">
+  <div class="finance-ledger__toolbar">
+    <h1>Ledger Inspection</h1>
+    <app-freshness-label [asOf]="store.lastQueriedAt()" prefix="Results as of" />
+  </div>
+  <p class="finance-ledger__note">
+    Read-only and append-only by design -- no edit/delete affordance exists here, or ever will.
+    Results are a point-in-time snapshot; re-run the query to see newer entries.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="finance-ledger__error">{{ store.error() }}</p>
+  }
+
+  <section class="finance-ledger__filters">
+    <ums-form-field #referenceTypeField="umsFormField" label="Reference type">
+      <ums-input
+        [id]="referenceTypeField.controlId()"
+        [value]="referenceType()"
+        (valueChange)="referenceType.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #referenceIdField="umsFormField" label="Reference id">
+      <ums-input
+        [id]="referenceIdField.controlId()"
+        [value]="referenceId()"
+        (valueChange)="referenceId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #entryTypeField="umsFormField" label="Entry type">
+      <ums-input
+        [id]="entryTypeField.controlId()"
+        [value]="entryType()"
+        (valueChange)="entryType.set($event)"
+      />
+    </ums-form-field>
+    <ums-date-range-picker
+      label="Occurred between"
+      [start]="occurredFrom()"
+      [end]="occurredTo()"
+      (rangeChange)="occurredFrom.set($event.start); occurredTo.set($event.end)"
+    />
+    <ums-button (click)="runQuery()">Search</ums-button>
+  </section>
+
+  <p class="finance-ledger__count">{{ store.totalCount() }} total matching entries.</p>
+
+  <ums-data-table
+    [columns]="columns"
+    [rows]="store.entries()"
+    [rowId]="rowId"
+    emptyMessage="No ledger entries match this query yet -- run a search above."
+    caption="Ledger entries"
+  />
+</div>

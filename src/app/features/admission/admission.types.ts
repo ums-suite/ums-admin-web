@@ -88,3 +88,115 @@ export interface ApplicationDto {
 export interface ResubmissionRequest {
   readonly reason: string;
 }
+
+// ---- ExamAttempt (ADMIN-19) -- hand-typed against `ums-core`'s real `ExamAttemptDto`. ----
+// CONFIRMED GAP: no list/monitor endpoint exists for attempts under one AdmissionTest/exam window
+// (only single-attempt `GET /exams/attempts/{id}`) -- "monitoring" here is honestly an id-based
+// lookup workspace, the same interim mechanism already established for Student/Admission's own
+// other confirmed no-list gaps. The DTO also omits `ProctoringSessionId`/`SeedValue`/`SubmittedAt`/
+// `SubmissionSource`, which the real domain entity carries but never serializes.
+
+export type ExamAttemptStatus = 'InProgress' | 'Submitted';
+export type ExamAttemptEvaluationStatus = 'Pending' | 'Evaluated';
+export type IntegrityFlagOutcome = 'Pending' | 'Cleared' | 'Confirmed';
+
+export interface ExamAnswerDto {
+  readonly questionId: string;
+  readonly selectedOptionIndex: number | null;
+  readonly subjectiveText: string | null;
+}
+
+export interface IntegrityFlagDto {
+  readonly id: string;
+  readonly anomalyType: string;
+  readonly details: string;
+  readonly confidenceScore: number;
+  readonly outcome: IntegrityFlagOutcome | string;
+}
+
+export interface ExamAttemptDto {
+  readonly id: string;
+  readonly applicantId: string;
+  readonly admissionTestId: string;
+  readonly rollNumber: string;
+  readonly status: ExamAttemptStatus | string;
+  readonly startedAt: string;
+  readonly expiresAt: string;
+  readonly selectedQuestionIds: readonly string[];
+  readonly answers: readonly ExamAnswerDto[];
+  readonly evaluationStatus: ExamAttemptEvaluationStatus | string;
+  readonly objectiveScore: number | null;
+  readonly subjectiveScore: number | null;
+  readonly integrityFlags: readonly IntegrityFlagDto[];
+}
+
+export interface RecordSubjectiveScoreRequest {
+  readonly subjectiveScore: number;
+}
+
+export interface ReviewIntegrityFlagRequest {
+  readonly outcome: 'Cleared' | 'Confirmed';
+  readonly reviewNotes: string | null;
+}
+
+// ---- MeritList (ADMIN-19) -- hand-typed against `ums-core`'s real `MeritListDto`. ----
+// CONFIRMED GAP: `Generate` blocks entirely (409 `merit_list.evaluation_incomplete`) unless every
+// in-scope ExamAttempt is `Evaluated` -- there is no partial/provisional list, and no per-entry
+// flag/reject/annotate endpoint. "Review" is simply an authorized GET before someone eligible
+// calls `Approve`.
+
+export type MeritListStatus = 'Draft' | 'Approved';
+export type MeritOutcome = 'Admitted' | 'Waitlisted' | 'Rejected';
+
+export interface MeritListEntryDto {
+  readonly applicantId: string;
+  readonly applicationId: string;
+  readonly programId: string;
+  readonly score: number;
+  readonly rank: number;
+  readonly outcome: MeritOutcome | string;
+  readonly waitlistRank: number | null;
+}
+
+export interface MeritListDto {
+  readonly id: string;
+  readonly campaignId: string;
+  readonly status: MeritListStatus | string;
+  readonly entries: readonly MeritListEntryDto[];
+}
+
+export interface PromoteWaitlistedRequest {
+  readonly applicantId: string;
+  readonly programId: string;
+}
+
+// ---- AdmissionResult (ADMIN-20) -- hand-typed against `ums-core`'s real `AdmissionResultDto`. ----
+// Distinct from Academic's own `ResultPublication` (`academic.types.ts`) -- a separate aggregate
+// scoped per-Campaign, but the ONLY one of the two Result-Publication-shaped entities in this app
+// that has a real `GET` to bootstrap current state from (`by-campaign/{campaignId}`), which is why
+// `admission-result-publication.component.ts` can drive `ResultPublicationWizard` from a real
+// starting index while Academic's own screen (ADMIN-23) cannot -- see that component's own doc.
+// All five transition endpoints share ONE permission, `admission.result.publish` -- there is no
+// separate "propose" vs "approve" permission tier at the API-gate level, the multi-step-ness is a
+// state-machine control, not a permission-tier control. No `version`/optimistic-concurrency field
+// is exposed anywhere in this DTO -- concurrency is a server-side state-guarded conditional update.
+
+export type AdmissionResultStatus =
+  'Draft' | 'Calculated' | 'Verified' | 'Approved' | 'Publishing' | 'Published' | 'Archived';
+
+export interface AdmissionResultEntryDto {
+  readonly applicantId: string;
+  readonly applicationId: string;
+  readonly programId: string;
+  readonly outcome: MeritOutcome | string;
+  readonly meritRank: number;
+  readonly waitlistRank: number | null;
+}
+
+export interface AdmissionResultDto {
+  readonly id: string;
+  readonly campaignId: string;
+  readonly meritListId: string;
+  readonly status: AdmissionResultStatus | string;
+  readonly entries: readonly AdmissionResultEntryDto[];
+}

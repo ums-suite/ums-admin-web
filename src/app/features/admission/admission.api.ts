@@ -3,12 +3,18 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { APP_CONFIG } from '../../core/config/app-config';
 import type {
+  AdmissionResultDto,
   ApplicationDto,
   CampaignDto,
   CreateCampaignRequest,
   EligibilityRuleRequest,
+  ExamAttemptDto,
+  MeritListDto,
+  PromoteWaitlistedRequest,
+  RecordSubjectiveScoreRequest,
   RequiredDocumentRequest,
   ResubmissionRequest,
+  ReviewIntegrityFlagRequest,
   SeatQuotaRequest,
 } from './admission.types';
 
@@ -98,5 +104,86 @@ export class AdmissionApi {
 
   declineApplication(applicationId: string): Observable<unknown> {
     return this.http.post<unknown>(`${this.baseUrl}/applications/${applicationId}/decline`, {});
+  }
+
+  // ---- ExamAttempt (ADMIN-19) -- no list/monitor endpoint exists, see admission.types.ts's own doc ----
+
+  getExamAttemptById(id: string): Observable<ExamAttemptDto> {
+    return this.http.get<ExamAttemptDto>(`${this.baseUrl}/exams/attempts/${id}`);
+  }
+
+  recordSubjectiveScore(
+    attemptId: string,
+    request: RecordSubjectiveScoreRequest,
+  ): Observable<ExamAttemptDto> {
+    return this.http.post<ExamAttemptDto>(
+      `${this.baseUrl}/exams/attempts/${attemptId}/subjective-score`,
+      request,
+    );
+  }
+
+  reviewIntegrityFlag(
+    attemptId: string,
+    flagId: string,
+    request: ReviewIntegrityFlagRequest,
+  ): Observable<ExamAttemptDto> {
+    return this.http.post<ExamAttemptDto>(
+      `${this.baseUrl}/exams/attempts/${attemptId}/integrity-flags/${flagId}/review`,
+      request,
+    );
+  }
+
+  // ---- MeritList (ADMIN-19) ----
+
+  generateMeritList(campaignId: string): Observable<MeritListDto> {
+    return this.http.post<MeritListDto>(`${this.baseUrl}/merit-lists/${campaignId}/generate`, {});
+  }
+
+  getMeritListByCampaign(campaignId: string): Observable<MeritListDto> {
+    return this.http.get<MeritListDto>(`${this.baseUrl}/merit-lists/by-campaign/${campaignId}`);
+  }
+
+  approveMeritList(meritListId: string): Observable<MeritListDto> {
+    return this.http.post<MeritListDto>(`${this.baseUrl}/merit-lists/${meritListId}/approve`, {});
+  }
+
+  promoteWaitlisted(campaignId: string, request: PromoteWaitlistedRequest): Observable<unknown> {
+    return this.http.post<unknown>(
+      `${this.baseUrl}/results/${campaignId}/promote-waitlisted`,
+      request,
+    );
+  }
+
+  // ---- AdmissionResult (ADMIN-20) -- the only Result-Publication-shaped entity in this app with ----
+  // ---- a real GET to bootstrap current state from, see admission.types.ts's own doc. ----
+
+  getAdmissionResultByCampaign(campaignId: string): Observable<AdmissionResultDto> {
+    return this.http.get<AdmissionResultDto>(`${this.baseUrl}/results/by-campaign/${campaignId}`);
+  }
+
+  calculateAdmissionResult(campaignId: string): Observable<AdmissionResultDto> {
+    return this.http.post<AdmissionResultDto>(
+      `${this.baseUrl}/results/${campaignId}/calculate`,
+      {},
+    );
+  }
+
+  lockAdmissionResult(resultId: string): Observable<AdmissionResultDto> {
+    return this.http.post<AdmissionResultDto>(`${this.baseUrl}/results/${resultId}/lock`, {});
+  }
+
+  approveAdmissionResult(resultId: string): Observable<AdmissionResultDto> {
+    return this.http.post<AdmissionResultDto>(`${this.baseUrl}/results/${resultId}/approve`, {});
+  }
+
+  publishAdmissionResult(resultId: string): Observable<AdmissionResultDto> {
+    return this.http.post<AdmissionResultDto>(`${this.baseUrl}/results/${resultId}/publish`, {});
+  }
+
+  reenterAdmissionResultForCorrection(resultId: string): Observable<AdmissionResultDto> {
+    return this.http.post<AdmissionResultDto>(
+      `${this.baseUrl}/results/${resultId}/reenter-for-correction`,
+      {},
+    );
   }
 }

@@ -1,0 +1,184 @@
+<div class="admission-exam-merit">
+  <h1>Exam Attempt Monitoring &amp; Merit List</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="admission-exam-merit__error">{{ store.error() }}</p>
+  }
+
+  <section class="admission-exam-merit__section">
+    <h2>Exam Attempt</h2>
+    <p class="admission-exam-merit__note">
+      No list/monitor endpoint exists for attempts under a live exam window -- lookup is by attempt
+      id (e.g. one an invigilator flagged).
+    </p>
+    <div class="admission-exam-merit__lookup">
+      <ums-form-field #attemptLookupField="umsFormField" label="Exam attempt id">
+        <ums-input
+          [id]="attemptLookupField.controlId()"
+          [value]="lookupAttemptId()"
+          (valueChange)="lookupAttemptId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadExamAttempt()">Load</ums-button>
+    </div>
+
+    @if (store.currentAttempt(); as attempt) {
+      <dl class="admission-exam-merit__summary">
+        <dt>Status</dt>
+        <dd>
+          <ums-badge variant="info">{{ attempt.status }}</ums-badge>
+          <ums-badge [variant]="attempt.evaluationStatus === 'Evaluated' ? 'success' : 'warning'">
+            {{ attempt.evaluationStatus }}
+          </ums-badge>
+        </dd>
+        <dt>Objective score</dt>
+        <dd class="ums-tnum">{{ attempt.objectiveScore ?? '--' }}</dd>
+        <dt>Subjective score</dt>
+        <dd class="ums-tnum">{{ attempt.subjectiveScore ?? 'Not yet recorded' }}</dd>
+        <dt>Integrity flags</dt>
+        <dd>
+          @for (flag of attempt.integrityFlags; track flag.id) {
+            <div>
+              {{ flag.anomalyType }} ({{ flag.details }}) --
+              <ums-badge
+                [variant]="
+                  flag.outcome === 'Confirmed'
+                    ? 'danger'
+                    : flag.outcome === 'Cleared'
+                      ? 'success'
+                      : 'warning'
+                "
+              >
+                {{ flag.outcome }}
+              </ums-badge>
+              (id: {{ flag.id }})
+            </div>
+          } @empty {
+            <span>No integrity flags raised.</span>
+          }
+        </dd>
+      </dl>
+
+      <div
+        class="admission-exam-merit__card"
+        *appHasPermission="permissionKeys.admission.applicationReview"
+      >
+        <h3>Record Subjective Score</h3>
+        <ums-form-field #scoreField="umsFormField" label="Subjective score" [required]="true">
+          <ums-input
+            type="number"
+            [id]="scoreField.controlId()"
+            [value]="subjectiveScoreValue()"
+            (valueChange)="subjectiveScoreValue.set($event)"
+          />
+        </ums-form-field>
+        <ums-button size="sm" (click)="recordSubjectiveScore()">Record Score</ums-button>
+      </div>
+
+      <div
+        class="admission-exam-merit__card"
+        *appHasPermission="permissionKeys.admission.applicationReview"
+      >
+        <h3>Review Integrity Flag</h3>
+        <ums-form-field #flagIdField="umsFormField" label="Flag id" [required]="true">
+          <ums-input
+            [id]="flagIdField.controlId()"
+            [value]="reviewFlagId()"
+            (valueChange)="reviewFlagId.set($event)"
+          />
+        </ums-form-field>
+        <div class="admission-exam-merit__button-row">
+          <ums-button variant="secondary" size="sm" (click)="reviewIntegrityFlag('Cleared')">
+            Clear
+          </ums-button>
+          <ums-button variant="danger" size="sm" (click)="reviewIntegrityFlag('Confirmed')">
+            Confirm
+          </ums-button>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="admission-exam-merit__section">
+    <h2>Merit List</h2>
+    <div class="admission-exam-merit__lookup">
+      <ums-form-field #campaignField="umsFormField" label="Campaign id">
+        <ums-input
+          [id]="campaignField.controlId()"
+          [value]="lookupCampaignId()"
+          (valueChange)="lookupCampaignId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadMeritList()">Load</ums-button>
+      <ums-button
+        variant="secondary"
+        *appHasPermission="permissionKeys.admission.meritListGenerate"
+        (click)="generateMeritList()"
+      >
+        Generate
+      </ums-button>
+    </div>
+    <p class="admission-exam-merit__note">
+      Generation blocks entirely (a real, explicit error) unless every in-scope exam attempt is
+      already evaluated -- there is no partial/provisional merit list.
+    </p>
+
+    @if (store.currentMeritList(); as meritList) {
+      <dl class="admission-exam-merit__summary">
+        <dt>Status</dt>
+        <dd>
+          <ums-badge [variant]="meritList.status === 'Approved' ? 'success' : 'warning'">{{
+            meritList.status
+          }}</ums-badge>
+        </dd>
+        <dt>Entries</dt>
+        <dd>
+          @for (entry of meritList.entries; track entry.applicantId) {
+            <div>
+              #{{ entry.rank }} -- {{ entry.applicantId }} ({{ entry.programId }}) --
+              {{ entry.outcome }}
+              @if (entry.waitlistRank !== null) {
+                (waitlist #{{ entry.waitlistRank }})
+              }
+            </div>
+          } @empty {
+            <span>No entries.</span>
+          }
+        </dd>
+      </dl>
+
+      <ums-button
+        *appHasPermission="permissionKeys.admission.meritListApprove"
+        (click)="approveMeritList()"
+      >
+        Approve Merit List
+      </ums-button>
+
+      <div
+        class="admission-exam-merit__card"
+        *appHasPermission="permissionKeys.admission.meritListApprove"
+      >
+        <h3>Promote Waitlisted Applicant</h3>
+        <ums-form-field
+          #promoteApplicantField="umsFormField"
+          label="Applicant id"
+          [required]="true"
+        >
+          <ums-input
+            [id]="promoteApplicantField.controlId()"
+            [value]="promoteApplicantId()"
+            (valueChange)="promoteApplicantId.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field #promoteProgramField="umsFormField" label="Program id" [required]="true">
+          <ums-input
+            [id]="promoteProgramField.controlId()"
+            [value]="promoteProgramId()"
+            (valueChange)="promoteProgramId.set($event)"
+          />
+        </ums-form-field>
+        <ums-button size="sm" (click)="promoteWaitlisted()">Promote</ums-button>
+      </div>
+    }
+  </section>
+</div>

@@ -1,0 +1,109 @@
+<div class="finance-oversight">
+  <h1>Invoice &amp; Payment Oversight</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="finance-oversight__error">{{ store.error() }}</p>
+  }
+
+  <section class="finance-oversight__section">
+    <h2>Invoice</h2>
+    <div class="finance-oversight__lookup">
+      <ums-form-field #invoiceIdField="umsFormField" label="Invoice id">
+        <ums-input
+          [id]="invoiceIdField.controlId()"
+          [value]="lookupInvoiceId()"
+          (valueChange)="lookupInvoiceId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadInvoice()">Load</ums-button>
+    </div>
+
+    @if (store.forbidden()) {
+      <p role="alert" class="finance-oversight__forbidden">
+        Access denied. ums-core's <code>GET /invoices/{{ '{id}' }}</code> is ownership-gated with no
+        staff-permission bypass (a confirmed backend gap) -- an Accountant/Admin cannot view another
+        owner's Invoice directly today.
+      </p>
+    }
+
+    @if (store.currentInvoice(); as invoice) {
+      <dl class="finance-oversight__summary">
+        <dt>Status</dt>
+        <dd>
+          <ums-badge [variant]="invoice.status === 'Paid' ? 'success' : 'warning'">{{
+            invoice.status
+          }}</ums-badge>
+        </dd>
+        <dt>Fee type</dt>
+        <dd>{{ invoice.feeType }}</dd>
+        <dt>Amount</dt>
+        <dd class="ums-tnum">{{ invoice.totalAmount }} {{ invoice.currency }}</dd>
+        <dt>Owner</dt>
+        <dd>{{ invoice.ownerId }}</dd>
+      </dl>
+    }
+  </section>
+
+  <section class="finance-oversight__section">
+    <h2>Payment</h2>
+    <div class="finance-oversight__lookup">
+      <ums-form-field #paymentIdField="umsFormField" label="Payment id">
+        <ums-input
+          [id]="paymentIdField.controlId()"
+          [value]="lookupPaymentId()"
+          (valueChange)="lookupPaymentId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadPayment()">Load</ums-button>
+    </div>
+
+    @if (store.forbidden()) {
+      <p role="alert" class="finance-oversight__forbidden">
+        Access denied. ums-core's <code>GET /payments/{{ '{id}' }}</code> is ownership-gated with no
+        staff-permission bypass (a confirmed backend gap).
+      </p>
+    }
+
+    @if (store.currentPayment(); as payment) {
+      <dl class="finance-oversight__summary">
+        <dt>Status</dt>
+        <dd>
+          <ums-badge variant="info">{{ payment.status }}</ums-badge>
+        </dd>
+        <dt>Amount</dt>
+        <dd class="ums-tnum">{{ payment.amount }} {{ payment.currency }}</dd>
+        <dt>Gateway</dt>
+        <dd>{{ payment.gatewayName }}</dd>
+        <dt>Owner</dt>
+        <dd>{{ payment.ownerId }}</dd>
+      </dl>
+    }
+  </section>
+
+  <section
+    class="finance-oversight__section"
+    *appHasPermission="permissionKeys.finance.paymentRefund"
+  >
+    <h2>Process Refund</h2>
+    <p class="finance-oversight__note">
+      Not ownership-scoped -- works regardless of whether the Invoice/Payment lookup above is
+      blocked, as long as you know the Payment id.
+    </p>
+    <ums-form-field #refundPaymentIdField="umsFormField" label="Payment id" [required]="true">
+      <ums-input
+        [id]="refundPaymentIdField.controlId()"
+        [value]="refundPaymentId()"
+        (valueChange)="refundPaymentId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #refundAmountField="umsFormField" label="Refund amount" [required]="true">
+      <ums-input
+        type="number"
+        [id]="refundAmountField.controlId()"
+        [value]="refundAmount()"
+        (valueChange)="refundAmount.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="danger" (click)="submitRefund()">Process Refund</ums-button>
+  </section>
+</div>

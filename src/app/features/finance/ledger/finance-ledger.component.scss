@@ -1,0 +1,37 @@
+.finance-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  padding: var(--space-5, 20px);
+}
+
+.finance-ledger__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.finance-ledger__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3, 12px);
+}
+
+.finance-ledger__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.finance-ledger__count {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.finance-ledger__error {
+  color: var(--color-danger);
+}

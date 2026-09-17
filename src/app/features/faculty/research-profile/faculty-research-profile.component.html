@@ -1,0 +1,100 @@
+<div class="faculty-research-profile">
+  <h1>Research Profile</h1>
+  <p class="faculty-research-profile__note">
+    No moderation workflow exists in ums-core -- this edits the profile that is already, and
+    immediately, publicly visible. There is no draft/review/publish state.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="faculty-research-profile__error">{{ store.error() }}</p>
+  }
+
+  <div class="faculty-research-profile__lookup">
+    <ums-form-field #memberIdField="umsFormField" label="Faculty member id">
+      <ums-input
+        [id]="memberIdField.controlId()"
+        [value]="facultyMemberId()"
+        (valueChange)="facultyMemberId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadProfile()">Load</ums-button>
+  </div>
+
+  @if (store.currentProfile(); as profile) {
+    <section class="faculty-research-profile__section">
+      <h2>Current Publications</h2>
+      @for (publication of profile.publications; track publication.title) {
+        <div>{{ publication.title }} -- {{ publication.venue }} ({{ publication.year }})</div>
+      } @empty {
+        <p>No publications recorded.</p>
+      }
+    </section>
+
+    <section
+      class="faculty-research-profile__section"
+      *appHasPermission="[
+        permissionKeys.faculty.researchUpdate,
+        permissionKeys.faculty.researchPublish,
+      ]"
+    >
+      <h2>Edit</h2>
+      @for (publication of draftPublications(); track $index) {
+        <div class="faculty-research-profile__row">
+          <span>{{ publication.title }} -- {{ publication.venue }} ({{ publication.year }})</span>
+          <ums-button variant="ghost" size="sm" (click)="removeDraftPublication($index)">
+            Remove
+          </ums-button>
+        </div>
+      }
+      <ums-form-field #titleField="umsFormField" label="Publication title">
+        <ums-input
+          [id]="titleField.controlId()"
+          [value]="publicationTitle()"
+          (valueChange)="publicationTitle.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #venueField="umsFormField" label="Venue">
+        <ums-input
+          [id]="venueField.controlId()"
+          [value]="publicationVenue()"
+          (valueChange)="publicationVenue.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #yearField="umsFormField" label="Year">
+        <ums-input
+          type="number"
+          [id]="yearField.controlId()"
+          [value]="publicationYear()"
+          (valueChange)="publicationYear.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #urlField="umsFormField" label="URL (optional)">
+        <ums-input
+          [id]="urlField.controlId()"
+          [value]="publicationUrl()"
+          (valueChange)="publicationUrl.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" size="sm" (click)="addDraftPublication()">
+        Add Publication
+      </ums-button>
+
+      <ums-form-field #ongoingField="umsFormField" label="Ongoing research">
+        <ums-input
+          [id]="ongoingField.controlId()"
+          [value]="ongoingResearch()"
+          (valueChange)="ongoingResearch.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #grantsField="umsFormField" label="Grants">
+        <ums-input
+          [id]="grantsField.controlId()"
+          [value]="grants()"
+          (valueChange)="grants.set($event)"
+        />
+      </ums-form-field>
+
+      <ums-button (click)="submitUpdate()">Save Changes</ums-button>
+    </section>
+  }
+</div>

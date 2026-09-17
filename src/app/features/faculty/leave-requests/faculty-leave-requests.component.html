@@ -1,0 +1,87 @@
+<div class="faculty-leave-requests">
+  <h1>Leave Requests</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="faculty-leave-requests__error">{{ store.error() }}</p>
+  }
+
+  @if (conflict()) {
+    <app-version-conflict-banner
+      message="This leave request was already decided by another reviewer since you loaded the list."
+      (reload)="reloadAfterConflict()"
+    />
+  }
+
+  <div class="faculty-leave-requests__lookup">
+    <ums-form-field #memberIdField="umsFormField" label="Faculty member id">
+      <ums-input
+        [id]="memberIdField.controlId()"
+        [value]="facultyMemberId()"
+        (valueChange)="facultyMemberId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadRequests()">Load</ums-button>
+  </div>
+
+  <table class="faculty-leave-requests__table">
+    <thead>
+      <tr>
+        <th scope="col">Dates</th>
+        <th scope="col">Status</th>
+        <th scope="col">Routing</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (request of store.requests(); track request.id) {
+        <tr>
+          <td>{{ request.startDate }} -- {{ request.endDate }}</td>
+          <td>
+            <ums-badge
+              [variant]="
+                request.status === 'Approved'
+                  ? 'success'
+                  : request.status === 'Rejected'
+                    ? 'danger'
+                    : 'info'
+              "
+            >
+              {{ request.status }}
+            </ums-badge>
+          </td>
+          <td>{{ request.routedDirectlyToAuthority ? 'Direct to Authority' : 'Standard' }}</td>
+          <td>
+            @if (isAwaitingDepartmentHead(request)) {
+              <div
+                class="faculty-leave-requests__button-row"
+                *appHasPermission="permissionKeys.faculty.leaveApproveDepartment"
+              >
+                <ums-button size="sm" (click)="approveByDepartmentHead(request)"
+                  >Approve</ums-button
+                >
+                <ums-button variant="danger" size="sm" (click)="rejectByDepartmentHead(request)">
+                  Reject
+                </ums-button>
+              </div>
+            }
+            @if (isAwaitingAuthority(request)) {
+              <div
+                class="faculty-leave-requests__button-row"
+                *appHasPermission="permissionKeys.faculty.leaveApproveAuthority"
+              >
+                <ums-button size="sm" (click)="approveByAuthority(request)">Approve</ums-button>
+                <ums-button variant="danger" size="sm" (click)="rejectByAuthority(request)">
+                  Reject
+                </ums-button>
+              </div>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4">No leave requests found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

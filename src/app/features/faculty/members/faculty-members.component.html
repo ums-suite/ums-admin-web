@@ -1,0 +1,167 @@
+<div class="faculty-members">
+  <h1>Faculty Members</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="faculty-members__error">{{ store.error() }}</p>
+  }
+
+  @if (conflict(); as conflictState) {
+    <app-version-conflict-banner
+      [message]="
+        conflictState.currentState
+          ? 'This faculty member record changed since you loaded it -- it is now at version ' +
+            conflictState.currentState.version +
+            '.'
+          : 'This faculty member record changed since you loaded it.'
+      "
+      (reload)="reloadAfterConflict()"
+    />
+  }
+
+  <section class="faculty-members__section">
+    <h2>Lookup</h2>
+    <div class="faculty-members__lookup">
+      <ums-form-field #memberIdField="umsFormField" label="Faculty member id">
+        <ums-input
+          [id]="memberIdField.controlId()"
+          [value]="lookupMemberId()"
+          (valueChange)="lookupMemberId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadMember()">Load</ums-button>
+    </div>
+    <div class="faculty-members__lookup">
+      <ums-form-field #departmentIdField="umsFormField" label="Department id (list members)">
+        <ums-input
+          [id]="departmentIdField.controlId()"
+          [value]="lookupDepartmentId()"
+          (valueChange)="lookupDepartmentId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadMembersByDepartment()">List</ums-button>
+    </div>
+    <p class="faculty-members__note">
+      No name/employee-id search exists -- filtering is by department id only.
+    </p>
+
+    @if (store.membersByDepartment().length > 0) {
+      <table class="faculty-members__table">
+        <thead>
+          <tr>
+            <th scope="col">Employee id</th>
+            <th scope="col">Status</th>
+            <th scope="col">Employment type</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (member of store.membersByDepartment(); track member.id) {
+            <tr>
+              <td>{{ member.employeeId }}</td>
+              <td>
+                <ums-badge [variant]="member.status === 'Active' ? 'success' : 'warning'">{{
+                  member.status
+                }}</ums-badge>
+              </td>
+              <td>{{ member.employmentType }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  @if (store.currentMember(); as member) {
+    <section class="faculty-members__section">
+      <h2>{{ member.employeeId }}</h2>
+      <dl class="faculty-members__summary">
+        <dt>Status</dt>
+        <dd>
+          <ums-badge [variant]="member.status === 'Active' ? 'success' : 'warning'">{{
+            member.status
+          }}</ums-badge>
+        </dd>
+        <dt>Department</dt>
+        <dd>{{ member.departmentId }}</dd>
+        <dt>Designation</dt>
+        <dd>{{ member.designationId }}</dd>
+        <dt>Employment type</dt>
+        <dd>{{ member.employmentType }}</dd>
+        <dt>Department head</dt>
+        <dd>{{ member.isDepartmentHead ? 'Yes' : 'No' }}</dd>
+        <dt>Joining date</dt>
+        <dd>{{ member.joiningDate }}</dd>
+        <dt>Version</dt>
+        <dd class="ums-tnum">{{ member.version }}</dd>
+      </dl>
+
+      <div class="faculty-members__button-row">
+        <ums-button variant="ghost" size="sm" (click)="goToCourseAssignments(member.id)">
+          Course Assignments
+        </ums-button>
+        <ums-button variant="ghost" size="sm" (click)="goToLeaveRequests(member.id)">
+          Leave Requests
+        </ums-button>
+      </div>
+
+      <p class="faculty-members__note">
+        Attendance oversight has no backend read endpoint in ums-core today (only mark/create
+        exists) -- flagged as a confirmed gap, not built here.
+      </p>
+
+      <div class="faculty-members__card" *appHasPermission="permissionKeys.faculty.memberManage">
+        <h3>Update Employment Details &amp; Designation</h3>
+        <ums-form-field #designationField="umsFormField" label="Designation id">
+          <ums-input
+            [id]="designationField.controlId()"
+            [value]="editDesignationId()"
+            (valueChange)="editDesignationId.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field #employmentTypeField="umsFormField" label="Employment type">
+          <ums-select
+            [id]="employmentTypeField.controlId()"
+            [options]="employmentTypeOptions"
+            [value]="editEmploymentType()"
+            (valueChange)="editEmploymentType.set($event)"
+          />
+        </ums-form-field>
+        <label class="faculty-members__checkbox">
+          <input
+            type="checkbox"
+            [checked]="editIsDepartmentHead()"
+            (change)="editIsDepartmentHead.set(!editIsDepartmentHead())"
+          />
+          Is Department Head
+        </label>
+        <ums-form-field #contactEmailField="umsFormField" label="Contact email">
+          <ums-input
+            [id]="contactEmailField.controlId()"
+            [value]="editContactEmail()"
+            (valueChange)="editContactEmail.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field #contactPhoneField="umsFormField" label="Contact phone">
+          <ums-input
+            [id]="contactPhoneField.controlId()"
+            [value]="editContactPhone()"
+            (valueChange)="editContactPhone.set($event)"
+          />
+        </ums-form-field>
+        <ums-button size="sm" (click)="submitEmploymentUpdate()">Update</ums-button>
+      </div>
+
+      <div class="faculty-members__card" *appHasPermission="permissionKeys.faculty.memberManage">
+        <h3>Change Status</h3>
+        <ums-form-field #statusField="umsFormField" label="New status">
+          <ums-select
+            [id]="statusField.controlId()"
+            [options]="statusOptions"
+            [value]="newStatus()"
+            (valueChange)="newStatus.set($event)"
+          />
+        </ums-form-field>
+        <ums-button size="sm" (click)="submitStatusChange()">Change Status</ums-button>
+      </div>
+    </section>
+  }
+</div>

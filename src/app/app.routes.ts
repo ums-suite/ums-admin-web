@@ -103,9 +103,80 @@ export const routes: Routes = [
               ),
             data: { label: 'Admissions -- Applicant Review' },
           },
+          {
+            path: 'exam-merit',
+            canActivate: [permissionGuard(PERMISSION_KEYS.admission.applicationReview)],
+            loadComponent: () =>
+              import('./features/admission/exam-merit/admission-exam-merit.component').then(
+                (m) => m.AdmissionExamMeritComponent,
+              ),
+            data: { label: 'Admissions -- Exam Attempts & Merit List' },
+          },
+          {
+            path: 'result-publication',
+            canActivate: [permissionGuard(PERMISSION_KEYS.admission.resultPublish)],
+            loadComponent: () =>
+              import('./features/admission/result-publication/admission-result-publication.component').then(
+                (m) => m.AdmissionResultPublicationComponent,
+              ),
+            data: { label: 'Admissions -- Result Publication' },
+          },
         ],
       },
-      { path: 'academic', loadComponent: placeholder, data: { label: 'Academic' } },
+      {
+        path: 'academic',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'curriculum' },
+          {
+            path: 'curriculum',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.academic.programManage,
+                PERMISSION_KEYS.academic.curriculumManage,
+                PERMISSION_KEYS.academic.courseManage,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/academic/curriculum/academic-curriculum.component').then(
+                (m) => m.AcademicCurriculumComponent,
+              ),
+            data: { label: 'Academic -- Curriculum' },
+          },
+          {
+            path: 'course-offerings',
+            canActivate: [permissionGuard(PERMISSION_KEYS.academic.courseOfferingManage)],
+            loadComponent: () =>
+              import('./features/academic/course-offerings/academic-course-offerings.component').then(
+                (m) => m.AcademicCourseOfferingsComponent,
+              ),
+            data: { label: 'Academic -- Course Offerings' },
+          },
+          {
+            path: 'grading',
+            canActivate: [permissionGuard(PERMISSION_KEYS.academic.gradeCorrect)],
+            loadComponent: () =>
+              import('./features/academic/grading/academic-grading.component').then(
+                (m) => m.AcademicGradingComponent,
+              ),
+            data: { label: 'Academic -- Grade Correction' },
+          },
+          {
+            path: 'result-publication',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.academic.gradeLock,
+                PERMISSION_KEYS.academic.resultApprove,
+                PERMISSION_KEYS.academic.resultPublish,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/academic/result-publication/academic-result-publication.component').then(
+                (m) => m.AcademicResultPublicationComponent,
+              ),
+            data: { label: 'Academic -- Result Publication' },
+          },
+        ],
+      },
       {
         path: 'student',
         children: [
@@ -139,8 +210,100 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'faculty', loadComponent: placeholder, data: { label: 'Faculty & HR' } },
-      { path: 'finance', loadComponent: placeholder, data: { label: 'Finance' } },
+      {
+        path: 'faculty',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'members' },
+          {
+            path: 'members',
+            canActivate: [permissionGuard(PERMISSION_KEYS.faculty.profileRead)],
+            loadComponent: () =>
+              import('./features/faculty/members/faculty-members.component').then(
+                (m) => m.FacultyMembersComponent,
+              ),
+            data: { label: 'Faculty -- Members' },
+          },
+          {
+            path: 'course-assignments',
+            canActivate: [permissionGuard(PERMISSION_KEYS.faculty.courseAssignmentRead)],
+            loadComponent: () =>
+              import('./features/faculty/course-assignments/faculty-course-assignments.component').then(
+                (m) => m.FacultyCourseAssignmentsComponent,
+              ),
+            data: { label: 'Faculty -- Course Assignments' },
+          },
+          {
+            path: 'leave-requests',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.faculty.leaveApproveDepartment,
+                PERMISSION_KEYS.faculty.leaveApproveAuthority,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/faculty/leave-requests/faculty-leave-requests.component').then(
+                (m) => m.FacultyLeaveRequestsComponent,
+              ),
+            data: { label: 'Faculty -- Leave Requests' },
+          },
+          {
+            path: 'research-profile',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.faculty.researchUpdate,
+                PERMISSION_KEYS.faculty.researchPublish,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/faculty/research-profile/faculty-research-profile.component').then(
+                (m) => m.FacultyResearchProfileComponent,
+              ),
+            data: { label: 'Faculty -- Research Profile' },
+          },
+        ],
+      },
+      {
+        path: 'finance',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'fee-structures' },
+          {
+            path: 'fee-structures',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.feeStructureManage)],
+            loadComponent: () =>
+              import('./features/finance/fee-structures/finance-fee-structures.component').then(
+                (m) => m.FinanceFeeStructuresComponent,
+              ),
+            data: { label: 'Finance -- Fee Structures' },
+          },
+          {
+            path: 'oversight',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.paymentRefund)],
+            loadComponent: () =>
+              import('./features/finance/oversight/finance-oversight.component').then(
+                (m) => m.FinanceOversightComponent,
+              ),
+            data: { label: 'Finance -- Invoice & Payment Oversight' },
+          },
+          {
+            path: 'ledger',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.ledgerRead)],
+            loadComponent: () =>
+              import('./features/finance/ledger/finance-ledger.component').then(
+                (m) => m.FinanceLedgerComponent,
+              ),
+            data: { label: 'Finance -- Ledger' },
+          },
+          {
+            path: 'reconciliation',
+            canActivate: [permissionGuard(PERMISSION_KEYS.finance.reconciliationReview)],
+            loadComponent: () =>
+              import('./features/finance/reconciliation/finance-reconciliation.component').then(
+                (m) => m.FinanceReconciliationComponent,
+              ),
+            data: { label: 'Finance -- Reconciliation' },
+          },
+        ],
+      },
       { path: 'hostel', loadComponent: placeholder, data: { label: 'Hostel' } },
       { path: 'library', loadComponent: placeholder, data: { label: 'Library' } },
       { path: 'content', loadComponent: placeholder, data: { label: 'Content' } },

@@ -1,0 +1,51 @@
+<div class="faculty-course-assignments">
+  <h1>Course Assignments</h1>
+  <p class="faculty-course-assignments__note">
+    Read-only -- a projection of Academic's own authoritative instructor assignment. To assign or
+    reassign an instructor, use Academic's Course Offerings screen; there is no confirmed endpoint
+    to remove an assignment.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="faculty-course-assignments__error">{{ store.error() }}</p>
+  }
+
+  <div class="faculty-course-assignments__lookup">
+    <ums-form-field #memberIdField="umsFormField" label="Faculty member id">
+      <ums-input
+        [id]="memberIdField.controlId()"
+        [value]="facultyMemberId()"
+        (valueChange)="facultyMemberId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadAssignments()">Load</ums-button>
+    <ums-button variant="ghost" (click)="goToCourseOfferings()">Go to Course Offerings</ums-button>
+  </div>
+
+  <table class="faculty-course-assignments__table">
+    <thead>
+      <tr>
+        <th scope="col">Course offering</th>
+        <th scope="col">Status</th>
+        <th scope="col">Assigned at</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (assignment of store.assignments(); track assignment.id) {
+        <tr>
+          <td>{{ assignment.courseOfferingId }}</td>
+          <td>
+            <ums-badge [variant]="assignment.status === 'Active' ? 'success' : 'neutral'">{{
+              assignment.status
+            }}</ums-badge>
+          </td>
+          <td>{{ assignment.assignedAt }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="3">No course assignments found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

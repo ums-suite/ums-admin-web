@@ -1,0 +1,122 @@
+<div class="admission-result-publication">
+  <h1>Admission Result Publication</h1>
+  <p class="admission-result-publication__note">
+    A deliberately slow, elevated-permission, multi-step action -- never a side effect of any other
+    screen. Every step re-checks your live authorization before it renders as actionable.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="admission-result-publication__error">{{ store.error() }}</p>
+  }
+
+  <section class="admission-result-publication__section">
+    <h2>Lookup</h2>
+    <div class="admission-result-publication__lookup">
+      <ums-form-field #campaignField="umsFormField" label="Campaign id" [required]="true">
+        <ums-input
+          [id]="campaignField.controlId()"
+          [value]="lookupCampaignId()"
+          (valueChange)="lookupCampaignId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadCurrentResult()">Load Current Status</ums-button>
+    </div>
+
+    @if (store.currentResult(); as result) {
+      <dl class="admission-result-publication__summary">
+        <dt>Status</dt>
+        <dd>{{ result.status }}</dd>
+        <dt>Merit list</dt>
+        <dd>{{ result.meritListId }}</dd>
+      </dl>
+
+      @if (result.status === 'Published') {
+        <div
+          class="admission-result-publication__card"
+          *appHasPermission="permissionKeys.admission.resultPublish"
+        >
+          <h3>Reenter for Correction</h3>
+          <p class="admission-result-publication__note">
+            Reverts this batch from Published to Verified so it can be corrected. It will need to be
+            re-approved and re-published afterward.
+          </p>
+          <ums-button variant="danger" size="sm" (click)="reenterForCorrection()">
+            Reenter for Correction
+          </ums-button>
+        </div>
+      } @else if (result.status === 'Publishing') {
+        <p class="admission-result-publication__note">
+          Publishing has started -- the batch will move to Published once the write-through cache
+          job completes. Reload to check status.
+        </p>
+      } @else if (result.status === 'Archived') {
+        <p class="admission-result-publication__note">
+          This batch is archived -- a terminal state.
+        </p>
+      } @else {
+        <ums-button
+          *appHasPermission="permissionKeys.admission.resultPublish"
+          (click)="startWizard()"
+        >
+          Start Result Publication Wizard
+        </ums-button>
+      }
+    } @else {
+      <p class="admission-result-publication__note">
+        No Admission Result exists yet for this campaign -- starting the wizard begins with
+        Calculate.
+      </p>
+      <ums-button
+        *appHasPermission="permissionKeys.admission.resultPublish"
+        (click)="startWizard()"
+      >
+        Start Result Publication Wizard
+      </ums-button>
+    }
+  </section>
+
+  @if (wizard(); as w) {
+    <section class="admission-result-publication__section">
+      <h2>Wizard</h2>
+      <ums-stepper [steps]="stepperSteps()" [currentIndex]="w.stepIndex()" />
+
+      @switch (w.status()) {
+        @case ('authorizing') {
+          <p>Checking your authorization for this step...</p>
+        }
+        @case ('ready') {
+          <div class="admission-result-publication__card">
+            <h3>{{ w.currentStep().label }}</h3>
+            <p>{{ w.currentStep().description }}</p>
+            <ums-button (click)="confirmAndSubmitCurrentStep()">
+              Confirm &amp; {{ w.currentStep().label }}
+            </ums-button>
+          </div>
+        }
+        @case ('submitting') {
+          <p>Submitting {{ w.currentStep().label }}...</p>
+        }
+        @case ('error') {
+          <p role="alert" class="admission-result-publication__error">
+            {{ w.errorMessage() }}
+            <ums-button variant="secondary" size="sm" (click)="confirmAndSubmitCurrentStep()">
+              Retry
+            </ums-button>
+          </p>
+        }
+        @case ('revoked') {
+          <app-permission-revoked-banner
+            actionLabel="Admission Result Publication"
+            (leave)="leaveRevokedFlow()"
+          />
+        }
+        @case ('completed') {
+          <p class="admission-result-publication__success">
+            All steps completed for this session. The batch's current status is
+            {{ w.context().result?.status }}.
+          </p>
+        }
+      }
+    </section>
+  }
+</div>

@@ -15,12 +15,19 @@
  * `document.<action>` spec literal, to satisfy Identity's real `<module>.<resource>.<action>`
  * catalog-validation pattern).
  *
- * Everything else below (Organization/Academic/Faculty/Finance/Hostel/Library/Content/
- * Documents/Reporting/Audit/Configuration keys) is this app's OWN BEST-EFFORT, ASSUMED literal
- * string, following the confirmed `<module>.<resource>.<action>` format but not independently
- * verified against `GET /api/v1/identity/permissions`'s real catalog (that call requires a live
- * backend + an authenticated privileged session, unavailable while building this app standalone).
- * Flagged explicitly in this app's PR: confirm every assumed key against the real catalog before
+ * The `academic`, `admission` (exam/merit/result keys), `finance`, and `faculty` sections below
+ * are CONFIRMED REAL for ADMIN-18..26 -- read directly off each module's own
+ * `Application/Permissions/<Module>Permissions.cs` C# constant declarations during this pass
+ * (`AcademicPermissions`, `AdmissionPermissions`, `FinancePermissions`, `FacultyPermissions` in
+ * `ums-core`'s real source), not guessed. `organization`/`admission.campaignManage`/
+ * `admission.applicationReview`/`student` above predate this pass and are unchanged.
+ *
+ * Everything else below (Hostel/Library/Content/Documents/Reporting/Audit/Configuration keys) is
+ * still this app's OWN BEST-EFFORT, ASSUMED literal string, following the confirmed
+ * `<module>.<resource>.<action>` format but not independently verified against
+ * `GET /api/v1/identity/permissions`'s real catalog (confirmed, still absent as of this pass --
+ * see `permissions.service.ts`'s own doc for the fail-closed handling of that gap). Flagged
+ * explicitly in this app's PR: confirm every remaining assumed key against the real catalog before
  * relying on it in production, and correct any mismatch here in one place.
  */
 export const PERMISSION_KEYS = {
@@ -39,6 +46,53 @@ export const PERMISSION_KEYS = {
   admission: {
     campaignManage: 'admission.campaign.manage',
     applicationReview: 'admission.application.review',
+    // Confirmed real -- AdmissionPermissions.cs (ADMIN-19/20 pass).
+    meritListGenerate: 'admission.meritlist.generate',
+    meritListApprove: 'admission.meritlist.approve',
+    resultPublish: 'admission.result.publish',
+  },
+  // Confirmed real -- AcademicPermissions.cs (ADMIN-18/21/22/23 pass).
+  academic: {
+    programManage: 'academic.program.manage',
+    curriculumManage: 'academic.curriculum.manage',
+    courseManage: 'academic.course.manage',
+    academicSessionManage: 'academic.academicsession.manage',
+    courseOfferingManage: 'academic.courseoffering.manage',
+    attendanceRecord: 'academic.attendance.record',
+    gradeEnter: 'academic.grade.enter',
+    gradeLock: 'academic.grade.lock',
+    gradeCorrect: 'academic.grade.correct',
+    resultApprove: 'academic.result.approve',
+    resultPublish: 'academic.result.publish',
+    studentResultRead: 'academic.student.result.read',
+  },
+  // Confirmed real -- FinancePermissions.cs (ADMIN-24/25 pass).
+  finance: {
+    feeStructureManage: 'finance.feestructure.manage',
+    invoiceCreate: 'finance.invoice.create',
+    // Declared in ums-core's own permission manifest but NOT wired to any endpoint yet
+    // (confirmed gap -- see finance.api.ts's own doc) -- kept here so this app's role/permission
+    // administration screens (ADMIN-11) can still assign it ahead of the backend catching up.
+    invoiceRead: 'finance.invoice.read',
+    paymentInitiate: 'finance.payment.initiate',
+    paymentRead: 'finance.payment.read',
+    paymentRefund: 'finance.payment.refund',
+    ledgerRead: 'finance.ledger.read',
+    // Declared, but "no endpoint gates on it yet" per FinancePermissionManifest.cs's own doc
+    // comment -- confirmed real string, confirmed real gap (see finance.api.ts).
+    reconciliationReview: 'finance.reconciliation.review',
+  },
+  // Confirmed real -- FacultyPermissions.cs (ADMIN-26 pass).
+  faculty: {
+    profileRead: 'faculty.profile.read',
+    profileUpdate: 'faculty.profile.update',
+    memberManage: 'faculty.member.manage',
+    courseAssignmentRead: 'faculty.courseassignment.read',
+    leaveCreate: 'faculty.leave.create',
+    leaveApproveDepartment: 'faculty.leave.approve.department',
+    leaveApproveAuthority: 'faculty.leave.approve.authority',
+    researchUpdate: 'faculty.research.update',
+    researchPublish: 'faculty.research.publish',
   },
   student: {
     profileRead: 'student.profile.read',

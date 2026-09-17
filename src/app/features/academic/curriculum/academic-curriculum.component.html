@@ -1,0 +1,317 @@
+<div class="academic-curriculum">
+  <h1>Academic Program, Session, Course &amp; Curriculum</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="academic-curriculum__error">{{ store.error() }}</p>
+  }
+
+  <section class="academic-curriculum__section">
+    <h2>Academic Program</h2>
+    <p class="academic-curriculum__note">
+      Distinct from the Program managed under Organization -- this is the Academic module's own
+      curriculum-scoped Program (credit rules, advisor-approval flag).
+    </p>
+    <div class="academic-curriculum__lookup">
+      <ums-form-field #programLookupField="umsFormField" label="Program id">
+        <ums-input
+          [id]="programLookupField.controlId()"
+          [value]="lookupProgramId()"
+          (valueChange)="lookupProgramId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadProgram()">Load</ums-button>
+    </div>
+
+    @if (store.currentProgram(); as program) {
+      <dl class="academic-curriculum__summary">
+        <dt>Code</dt>
+        <dd>{{ program.code }}</dd>
+        <dt>Name</dt>
+        <dd>{{ program.name }}</dd>
+        <dt>Department</dt>
+        <dd>{{ program.departmentId }}</dd>
+        <dt>Max credits/semester</dt>
+        <dd class="ums-tnum">{{ program.maxCreditsPerSemester }}</dd>
+        <dt>Requires advisor approval</dt>
+        <dd>
+          <ums-badge [variant]="program.requiresAdvisorApproval ? 'info' : 'neutral'">
+            {{ program.requiresAdvisorApproval ? 'Yes' : 'No' }}
+          </ums-badge>
+        </dd>
+      </dl>
+    }
+
+    <div
+      class="academic-curriculum__card"
+      *appHasPermission="permissionKeys.academic.programManage"
+    >
+      <h3>Create Program</h3>
+      <ums-form-field #deptField="umsFormField" label="Department id" [required]="true">
+        <ums-input
+          [id]="deptField.controlId()"
+          [value]="programDepartmentId()"
+          (valueChange)="programDepartmentId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #progCodeField="umsFormField" label="Code" [required]="true">
+        <ums-input
+          [id]="progCodeField.controlId()"
+          [value]="programCode()"
+          (valueChange)="programCode.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #progNameField="umsFormField" label="Name" [required]="true">
+        <ums-input
+          [id]="progNameField.controlId()"
+          [value]="programName()"
+          (valueChange)="programName.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #maxCreditsField="umsFormField"
+        label="Max credits/semester"
+        [required]="true"
+      >
+        <ums-input
+          type="number"
+          [id]="maxCreditsField.controlId()"
+          [value]="programMaxCredits()"
+          (valueChange)="programMaxCredits.set($event)"
+        />
+      </ums-form-field>
+      <label class="academic-curriculum__checkbox">
+        <input
+          type="checkbox"
+          [checked]="programRequiresAdvisorApproval()"
+          (change)="programRequiresAdvisorApproval.set(!programRequiresAdvisorApproval())"
+        />
+        Requires advisor approval
+      </label>
+      <ums-button size="sm" (click)="submitProgram()">Create Program</ums-button>
+    </div>
+  </section>
+
+  <section class="academic-curriculum__section">
+    <h2>Academic Session &amp; Semester</h2>
+    <div class="academic-curriculum__lookup">
+      <ums-form-field #sessionLookupField="umsFormField" label="Academic session id">
+        <ums-input
+          [id]="sessionLookupField.controlId()"
+          [value]="lookupSessionId()"
+          (valueChange)="lookupSessionId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadAcademicSession()">Load</ums-button>
+    </div>
+
+    @if (store.currentSession(); as session) {
+      <dl class="academic-curriculum__summary">
+        <dt>Code</dt>
+        <dd>{{ session.code }}</dd>
+        <dt>Semesters</dt>
+        <dd>
+          @for (semester of session.semesters; track semester.id) {
+            <div>
+              {{ semester.name }} (registration {{ semester.registrationStart }} --
+              {{ semester.registrationEnd }})
+            </div>
+          }
+        </dd>
+      </dl>
+    }
+
+    <div
+      class="academic-curriculum__card"
+      *appHasPermission="permissionKeys.academic.academicSessionManage"
+    >
+      <h3>Create Academic Session (one initial semester)</h3>
+      <ums-form-field #sessionCodeField="umsFormField" label="Session code" [required]="true">
+        <ums-input
+          [id]="sessionCodeField.controlId()"
+          [value]="sessionCode()"
+          (valueChange)="sessionCode.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #semesterNameField="umsFormField" label="Semester name" [required]="true">
+        <ums-input
+          [id]="semesterNameField.controlId()"
+          [value]="semesterName()"
+          (valueChange)="semesterName.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #regStartField="umsFormField"
+        label="Registration start (YYYY-MM-DD)"
+        [required]="true"
+      >
+        <ums-input
+          [id]="regStartField.controlId()"
+          [value]="semesterRegistrationStart()"
+          (valueChange)="semesterRegistrationStart.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #regEndField="umsFormField"
+        label="Registration end (YYYY-MM-DD)"
+        [required]="true"
+      >
+        <ums-input
+          [id]="regEndField.controlId()"
+          [value]="semesterRegistrationEnd()"
+          (valueChange)="semesterRegistrationEnd.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #dropStartField="umsFormField"
+        label="Drop start (YYYY-MM-DD)"
+        [required]="true"
+      >
+        <ums-input
+          [id]="dropStartField.controlId()"
+          [value]="semesterDropStart()"
+          (valueChange)="semesterDropStart.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #dropEndField="umsFormField" label="Drop end (YYYY-MM-DD)" [required]="true">
+        <ums-input
+          [id]="dropEndField.controlId()"
+          [value]="semesterDropEnd()"
+          (valueChange)="semesterDropEnd.set($event)"
+        />
+      </ums-form-field>
+      <ums-button size="sm" (click)="submitAcademicSession()">Create Session</ums-button>
+    </div>
+  </section>
+
+  <section class="academic-curriculum__section">
+    <h2>Course</h2>
+    <p class="academic-curriculum__note">
+      Prerequisites are configured only at creation time -- ums-core has no "add prerequisite to an
+      existing course" endpoint.
+    </p>
+    <div class="academic-curriculum__lookup">
+      <ums-form-field #courseLookupField="umsFormField" label="Course id">
+        <ums-input
+          [id]="courseLookupField.controlId()"
+          [value]="lookupCourseId()"
+          (valueChange)="lookupCourseId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadCourse()">Load</ums-button>
+    </div>
+
+    @if (store.currentCourse(); as course) {
+      <dl class="academic-curriculum__summary">
+        <dt>Code</dt>
+        <dd>{{ course.code }}</dd>
+        <dt>Title</dt>
+        <dd>{{ course.title }}</dd>
+        <dt>Credit hours</dt>
+        <dd class="ums-tnum">{{ course.creditHours }}</dd>
+        <dt>Prerequisites</dt>
+        <dd>{{ course.prerequisites.length > 0 ? course.prerequisites.join(', ') : 'None' }}</dd>
+      </dl>
+    }
+
+    <div class="academic-curriculum__card" *appHasPermission="permissionKeys.academic.courseManage">
+      <h3>Create Course</h3>
+      <ums-form-field #courseCodeField="umsFormField" label="Code" [required]="true">
+        <ums-input
+          [id]="courseCodeField.controlId()"
+          [value]="courseCode()"
+          (valueChange)="courseCode.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #courseTitleField="umsFormField" label="Title" [required]="true">
+        <ums-input
+          [id]="courseTitleField.controlId()"
+          [value]="courseTitle()"
+          (valueChange)="courseTitle.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #creditHoursField="umsFormField" label="Credit hours" [required]="true">
+        <ums-input
+          type="number"
+          [id]="creditHoursField.controlId()"
+          [value]="courseCreditHours()"
+          (valueChange)="courseCreditHours.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #prereqField="umsFormField" label="Prerequisite course ids (comma-separated)">
+        <ums-input
+          [id]="prereqField.controlId()"
+          [value]="coursePrerequisiteIds()"
+          (valueChange)="coursePrerequisiteIds.set($event)"
+        />
+      </ums-form-field>
+      <ums-button size="sm" (click)="submitCourse()">Create Course</ums-button>
+    </div>
+  </section>
+
+  <section class="academic-curriculum__section">
+    <h2>Curriculum Versioning</h2>
+    <p class="academic-curriculum__note">
+      Curriculum is a purely administrative course list -- it is NOT consulted by the enrollment
+      prerequisite gate, which reads each Course's own prerequisites directly.
+    </p>
+    <div class="academic-curriculum__lookup">
+      <ums-form-field #curriculumLookupField="umsFormField" label="Curriculum id">
+        <ums-input
+          [id]="curriculumLookupField.controlId()"
+          [value]="lookupCurriculumId()"
+          (valueChange)="lookupCurriculumId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="loadCurriculum()">Load</ums-button>
+    </div>
+
+    @if (store.currentCurriculum(); as curriculum) {
+      <dl class="academic-curriculum__summary">
+        <dt>Program</dt>
+        <dd>{{ curriculum.programId }}</dd>
+        <dt>Version</dt>
+        <dd class="ums-tnum">{{ curriculum.version }}</dd>
+        <dt>Courses</dt>
+        <dd>
+          @for (entry of curriculum.courses; track entry.courseId) {
+            <div>{{ entry.courseId }} ({{ entry.isRequired ? 'required' : 'elective' }})</div>
+          }
+        </dd>
+      </dl>
+    }
+
+    <div
+      class="academic-curriculum__card"
+      *appHasPermission="permissionKeys.academic.curriculumManage"
+    >
+      <h3>Create Curriculum</h3>
+      <ums-form-field #curriculumProgramField="umsFormField" label="Program id" [required]="true">
+        <ums-input
+          [id]="curriculumProgramField.controlId()"
+          [value]="curriculumProgramId()"
+          (valueChange)="curriculumProgramId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #curriculumVersionField="umsFormField" label="Version" [required]="true">
+        <ums-input
+          type="number"
+          [id]="curriculumVersionField.controlId()"
+          [value]="curriculumVersion()"
+          (valueChange)="curriculumVersion.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #curriculumCoursesField="umsFormField"
+        label="Course ids (comma-separated, required)"
+        [required]="true"
+      >
+        <ums-input
+          [id]="curriculumCoursesField.controlId()"
+          [value]="curriculumCourseIds()"
+          (valueChange)="curriculumCourseIds.set($event)"
+        />
+      </ums-form-field>
+      <ums-button size="sm" (click)="submitCurriculum()">Create Curriculum</ums-button>
+    </div>
+  </section>
+</div>

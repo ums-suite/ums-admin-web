@@ -1,0 +1,49 @@
+.academic-result-publication {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.academic-result-publication__section {
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+  background: var(--color-surface);
+
+  h2 {
+    margin-block-start: 0;
+    font-size: 1rem;
+  }
+}
+
+.academic-result-publication__button-row {
+  display: flex;
+  gap: var(--space-3, 12px);
+  margin-block: var(--space-3, 12px);
+}
+
+.academic-result-publication__card {
+  padding: var(--space-3, 12px);
+  margin-block-start: var(--space-3, 12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+
+  h3 {
+    margin-block-start: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.academic-result-publication__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.academic-result-publication__success {
+  color: var(--color-success);
+}
