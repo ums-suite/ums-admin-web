@@ -1,0 +1,19 @@
+name: CI
+
+# Calls ums-devops's reusable Angular workflow (ums-conventions.md: "every repo calls the
+# reusable workflow published from ums-devops - no repo hand-rolls its own pipeline from
+# scratch"), mirroring ums-admission-web's/ums-student-web's own thin ci.yml calling pattern.
+#
+# run-docker-build: false for now -- no Dockerfile/deployment manifest yet; no ADMIN ticket in
+# tickets.md scopes that infra work.
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  lint-test-build:
+    name: Lint, Test, Scan, Build
+    uses: ums-suite/ums-devops/.github/workflows/angular-app-ci.yml@main
+    with:
+      run-docker-build: false

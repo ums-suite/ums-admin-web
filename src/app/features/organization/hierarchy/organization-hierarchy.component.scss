@@ -1,0 +1,49 @@
+.org-hierarchy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+}
+
+.org-hierarchy__panel {
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+  background: var(--color-surface);
+}
+
+.org-hierarchy__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-3, 12px);
+
+  h2 {
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+.org-hierarchy__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: start;
+    padding: var(--space-3, 12px);
+    border-block-end: 1px solid var(--color-border);
+  }
+}
+
+.org-hierarchy__row--selected {
+  background: var(--color-surface-raised, var(--color-surface));
+}
+
+.org-hierarchy__row-actions {
+  display: flex;
+  gap: var(--space-2, 8px);
+}
+
+.org-hierarchy__error {
+  color: var(--color-danger);
+}

@@ -1,0 +1,13 @@
+@if (confirmation.current(); as request) {
+  <ums-confirmation-dialog
+    [open]="true"
+    [title]="request.title"
+    [description]="request.description"
+    [reasonLabel]="request.reasonLabel ?? 'Reason for this action'"
+    [reasonPlaceholder]="request.reasonPlaceholder ?? 'Explain why, for the audit log...'"
+    [confirmLabel]="request.confirmLabel ?? 'Confirm'"
+    [cancelLabel]="request.cancelLabel ?? 'Cancel'"
+    (confirmed)="onConfirmed($event)"
+    (cancelled)="onCancelled()"
+  />
+}

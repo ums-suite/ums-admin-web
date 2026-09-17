@@ -34,3 +34,7 @@ logs
 # System files
 .DS_Store
 Thumbs.db
+
+# Angular / test tooling
+/.angular
+/coverage

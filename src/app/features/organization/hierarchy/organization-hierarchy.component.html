@@ -1,0 +1,285 @@
+<div class="org-hierarchy">
+  @if (store.error()) {
+    <p role="alert" class="org-hierarchy__error">{{ store.error() }}</p>
+  }
+
+  <section class="org-hierarchy__panel">
+    <div class="org-hierarchy__panel-header">
+      <h2>Universities</h2>
+      <ums-button
+        *appHasPermission="permissionKeys.organization.manage"
+        size="sm"
+        (click)="openCreateModal('university')"
+      >
+        New University
+      </ums-button>
+    </div>
+    <table class="org-hierarchy__table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Code</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (university of store.universities(); track university.id) {
+          <tr [class.org-hierarchy__row--selected]="selectedUniversity()?.id === university.id">
+            <td>{{ university.name }}</td>
+            <td>{{ university.code ?? '--' }}</td>
+            <td>
+              <ums-badge [variant]="university.status === 'Active' ? 'success' : 'neutral'">{{
+                university.status
+              }}</ums-badge>
+            </td>
+            <td>
+              <ums-button variant="ghost" size="sm" (click)="selectUniversity(university)">
+                View campuses
+              </ums-button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No universities yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  @if (selectedUniversity(); as university) {
+    <section class="org-hierarchy__panel">
+      <div class="org-hierarchy__panel-header">
+        <h2>Campuses of {{ university.name }}</h2>
+        <ums-button
+          *appHasPermission="permissionKeys.organization.manage"
+          size="sm"
+          (click)="openCreateModal('campus')"
+        >
+          New Campus
+        </ums-button>
+      </div>
+      <table class="org-hierarchy__table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (campus of store.campuses(); track campus.id) {
+            <tr [class.org-hierarchy__row--selected]="selectedCampus()?.id === campus.id">
+              <td>{{ campus.name }}</td>
+              <td>
+                <ums-badge [variant]="campus.status === 'Active' ? 'success' : 'neutral'">{{
+                  campus.status
+                }}</ums-badge>
+              </td>
+              <td>
+                <ums-button variant="ghost" size="sm" (click)="selectCampus(campus)">
+                  View faculties
+                </ums-button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3">No campuses yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  @if (selectedCampus(); as campus) {
+    <section class="org-hierarchy__panel">
+      <div class="org-hierarchy__panel-header">
+        <h2>Faculties of {{ campus.name }}</h2>
+        <ums-button
+          *appHasPermission="permissionKeys.organization.manage"
+          size="sm"
+          (click)="openCreateModal('faculty')"
+        >
+          New Faculty
+        </ums-button>
+      </div>
+      <table class="org-hierarchy__table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (faculty of store.faculties(); track faculty.id) {
+            <tr [class.org-hierarchy__row--selected]="selectedFaculty()?.id === faculty.id">
+              <td>{{ faculty.name }}</td>
+              <td>
+                <ums-badge [variant]="faculty.status === 'Active' ? 'success' : 'neutral'">{{
+                  faculty.status
+                }}</ums-badge>
+              </td>
+              <td class="org-hierarchy__row-actions">
+                <ums-button variant="ghost" size="sm" (click)="selectFaculty(faculty)">
+                  View departments
+                </ums-button>
+                @if (faculty.status === 'Active') {
+                  <ums-button
+                    *appHasPermission="permissionKeys.organization.manage"
+                    variant="secondary"
+                    size="sm"
+                    (click)="deactivateFaculty(faculty)"
+                  >
+                    Deactivate
+                  </ums-button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3">No faculties yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  @if (selectedFaculty(); as faculty) {
+    <section class="org-hierarchy__panel">
+      <div class="org-hierarchy__panel-header">
+        <h2>Departments of {{ faculty.name }}</h2>
+        <ums-button
+          *appHasPermission="permissionKeys.organization.manage"
+          size="sm"
+          (click)="openCreateModal('department')"
+        >
+          New Department
+        </ums-button>
+      </div>
+      <table class="org-hierarchy__table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (department of store.departments(); track department.id) {
+            <tr [class.org-hierarchy__row--selected]="selectedDepartment()?.id === department.id">
+              <td>{{ department.name }}</td>
+              <td>
+                <ums-badge [variant]="department.status === 'Active' ? 'success' : 'neutral'">{{
+                  department.status
+                }}</ums-badge>
+              </td>
+              <td class="org-hierarchy__row-actions">
+                <ums-button variant="ghost" size="sm" (click)="selectDepartment(department)">
+                  View programs
+                </ums-button>
+                @if (department.status === 'Active') {
+                  <ums-button
+                    *appHasPermission="permissionKeys.organization.manage"
+                    variant="secondary"
+                    size="sm"
+                    (click)="deactivateDepartment(department)"
+                  >
+                    Deactivate
+                  </ums-button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3">No departments yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  @if (selectedDepartment(); as department) {
+    <section class="org-hierarchy__panel">
+      <div class="org-hierarchy__panel-header">
+        <h2>Programs of {{ department.name }}</h2>
+        <ums-button
+          *appHasPermission="permissionKeys.organization.manage"
+          size="sm"
+          (click)="openCreateModal('program')"
+        >
+          New Program
+        </ums-button>
+      </div>
+      <table class="org-hierarchy__table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (program of store.programs(); track program.id) {
+            <tr>
+              <td>{{ program.name }}</td>
+              <td>
+                <ums-badge [variant]="program.status === 'Active' ? 'success' : 'neutral'">{{
+                  program.status
+                }}</ums-badge>
+              </td>
+              <td>
+                @if (program.status === 'Active') {
+                  <ums-button
+                    *appHasPermission="permissionKeys.organization.manage"
+                    variant="secondary"
+                    size="sm"
+                    (click)="deactivateProgram(program)"
+                  >
+                    Deactivate
+                  </ums-button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3">No programs yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</div>
+
+<ums-modal
+  [open]="createLevel() !== null"
+  [title]="createModalTitle()"
+  (closed)="closeCreateModal()"
+>
+  <ums-form-field #nameField="umsFormField" label="Name" [required]="true">
+    <ums-input
+      [id]="nameField.controlId()"
+      [value]="createName()"
+      (valueChange)="createName.set($event)"
+    />
+  </ums-form-field>
+  @if (createLevel() === 'university') {
+    <ums-form-field #codeField="umsFormField" label="Code (optional)">
+      <ums-input
+        [id]="codeField.controlId()"
+        [value]="createCode()"
+        (valueChange)="createCode.set($event)"
+      />
+    </ums-form-field>
+  }
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="closeCreateModal()">Cancel</ums-button>
+    <ums-button (click)="submitCreate()">Create</ums-button>
+  </div>
+</ums-modal>

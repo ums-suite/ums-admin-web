@@ -1,0 +1,22 @@
+.login-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  max-width: 24rem;
+  margin-inline: auto;
+  margin-block-start: 15vh;
+  padding: var(--space-6, 24px);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-1);
+}
+
+.login-page__title {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.login-page__server-error {
+  margin: 0;
+  color: var(--color-danger);
+}

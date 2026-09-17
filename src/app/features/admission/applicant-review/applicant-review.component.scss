@@ -1,0 +1,96 @@
+.applicant-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.applicant-review__lookup {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3, 12px);
+  max-inline-size: 480px;
+}
+
+.applicant-review__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.applicant-review__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: var(--space-5, 20px);
+  align-items: start;
+}
+
+.applicant-review__detail,
+.applicant-review__actions {
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+  background: var(--color-surface);
+
+  h2 {
+    margin-block-start: 0;
+    font-size: 1rem;
+  }
+}
+
+.applicant-review__summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2, 8px) var(--space-3, 12px);
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.applicant-review__documents {
+  inline-size: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: start;
+    padding: var(--space-2, 8px);
+    border-block-end: 1px solid var(--color-border);
+  }
+}
+
+.applicant-review__rejection {
+  color: var(--color-danger);
+  font-size: 0.8rem;
+}
+
+.applicant-review__action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.applicant-review__forbidden {
+  color: var(--color-warning, var(--color-text));
+  background: var(--color-surface-raised, var(--color-surface));
+  padding: var(--space-3, 12px);
+  border-radius: var(--radius-2, 8px);
+}
+
+.applicant-review__error {
+  color: var(--color-danger);
+}
+
+@media (width <= 900px) {
+  .applicant-review__workspace {
+    grid-template-columns: 1fr;
+  }
+}

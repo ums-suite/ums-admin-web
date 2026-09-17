@@ -1,0 +1,108 @@
+<div class="bulk-import">
+  <h1>Bulk Student Import</h1>
+  <p class="bulk-import__note">
+    Upload -&gt; Preview errors -&gt; Approve -&gt; Process -&gt; Report, mirroring ums-core's own
+    job steps. A row's own failure never rolls back the whole import -- every row's outcome is
+    reported individually below.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="bulk-import__error">{{ store.error() }}</p>
+  }
+
+  @if (!store.job()) {
+    <section class="bulk-import__panel">
+      <h2>1. Upload a CSV</h2>
+      <ums-file-upload
+        [files]="uploadableFiles()"
+        accept=".csv"
+        [multiple]="false"
+        hint="Drag and drop a CSV file, or click to browse. Header row required."
+        (filesSelected)="onFilesSelected($event)"
+        (removeRequested)="removeFile()"
+      />
+      @if (parsedRows().length > 0) {
+        <p class="bulk-import__note">
+          Parsed {{ parsedRows().length }} row(s) from {{ selectedFileName() }}.
+        </p>
+        <ums-button
+          *appHasPermission="permissionKeys.student.bulkImportExecute"
+          [disabled]="store.isUploading()"
+          (click)="submitUpload()"
+        >
+          Upload
+        </ums-button>
+      }
+    </section>
+  }
+
+  @if (store.job(); as job) {
+    <section class="bulk-import__panel">
+      <div class="bulk-import__panel-header">
+        <h2>2. Preview -- Job {{ job.id }}</h2>
+        <ums-button variant="ghost" size="sm" (click)="startNewImport()"
+          >Start New Import</ums-button
+        >
+      </div>
+      <dl class="bulk-import__summary">
+        <dt>Status</dt>
+        <dd>{{ job.status }}</dd>
+        <dt>Total rows</dt>
+        <dd class="ums-tnum">{{ job.totalRows }}</dd>
+        <dt>Valid</dt>
+        <dd class="ums-tnum">{{ job.validRowCount }}</dd>
+        <dt>Invalid</dt>
+        <dd class="ums-tnum">{{ job.invalidRowCount }}</dd>
+      </dl>
+
+      @if (job.status === 'Validated') {
+        <ums-button
+          *appHasPermission="permissionKeys.student.bulkImportExecute"
+          (click)="approve()"
+        >
+          Approve and Process
+        </ums-button>
+      }
+
+      @if (isTracking()) {
+        <div class="bulk-import__progress">
+          <h3>3. Processing</h3>
+          @if (snapshot(); as jobSnapshot) {
+            <ums-progress-bar
+              [value]="jobSnapshot.progressPercent ?? 0"
+              [label]="jobSnapshot.message"
+            />
+          } @else {
+            <p>Starting...</p>
+          }
+        </div>
+      }
+
+      @if (store.report(); as report) {
+        <h3>Row-Level Report</h3>
+        <table class="bulk-import__rows">
+          <thead>
+            <tr>
+              <th scope="col">Row</th>
+              <th scope="col">Status</th>
+              <th scope="col">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of report.rows; track row.rowNumber) {
+              <tr
+                [class.bulk-import__row--failed]="
+                  row.status === 'Invalid' || row.status === 'Failed'
+                "
+              >
+                <td class="ums-tnum">{{ row.rowNumber }}</td>
+                <td>{{ row.status }}</td>
+                <td>{{ row.errorMessage ?? '--' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</div>

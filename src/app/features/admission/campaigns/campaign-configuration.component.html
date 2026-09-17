@@ -1,0 +1,194 @@
+<div class="campaign-config">
+  <h1>Admissions Campaign Configuration</h1>
+
+  <section class="campaign-config__panel">
+    <h2>Create a Campaign</h2>
+    <ums-form-field #nameField="umsFormField" label="Name" [required]="true">
+      <ums-input
+        [id]="nameField.controlId()"
+        [value]="newName()"
+        (valueChange)="newName.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field
+      #programIdsField="umsFormField"
+      label="Program ids (comma-separated)"
+      [required]="true"
+    >
+      <ums-input
+        [id]="programIdsField.controlId()"
+        [value]="newProgramIds()"
+        (valueChange)="newProgramIds.set($event)"
+      />
+    </ums-form-field>
+    <div class="campaign-config__row">
+      <ums-form-field #startField="umsFormField" label="Application window start" [required]="true">
+        <ums-date-picker
+          [id]="startField.controlId()"
+          [value]="newWindowStart()"
+          (valueChange)="newWindowStart.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #endField="umsFormField" label="Application window end" [required]="true">
+        <ums-date-picker
+          [id]="endField.controlId()"
+          [value]="newWindowEnd()"
+          (valueChange)="newWindowEnd.set($event)"
+        />
+      </ums-form-field>
+    </div>
+    <div class="campaign-config__row">
+      <ums-form-field #appFeeField="umsFormField" label="Application fee type" [required]="true">
+        <ums-input
+          [id]="appFeeField.controlId()"
+          [value]="newApplicationFeeType()"
+          (valueChange)="newApplicationFeeType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #confirmFeeField="umsFormField"
+        label="Confirmation fee type"
+        [required]="true"
+      >
+        <ums-input
+          [id]="confirmFeeField.controlId()"
+          [value]="newConfirmationFeeType()"
+          (valueChange)="newConfirmationFeeType.set($event)"
+        />
+      </ums-form-field>
+    </div>
+    <ums-button
+      *appHasPermission="permissionKeys.admission.campaignManage"
+      (click)="submitCreateCampaign()"
+    >
+      Create Campaign
+    </ums-button>
+  </section>
+
+  <section class="campaign-config__panel">
+    <h2>Load an Existing Campaign</h2>
+    <p class="campaign-config__note">
+      ums-core has no campaign list/browse endpoint -- look up a campaign by the id you already have
+      (e.g. from the create response above, or the Audit Log).
+    </p>
+    <ums-form-field #lookupField="umsFormField" label="Campaign id">
+      <ums-input
+        [id]="lookupField.controlId()"
+        [value]="lookupCampaignId()"
+        (valueChange)="lookupCampaignId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadCampaign()">Load</ums-button>
+  </section>
+
+  @if (store.error()) {
+    <p role="alert" class="campaign-config__error">{{ store.error() }}</p>
+  }
+
+  @if (store.currentCampaign(); as campaign) {
+    <section class="campaign-config__panel">
+      <div class="campaign-config__panel-header">
+        <h2>{{ campaign.name }}</h2>
+        <ums-badge [variant]="campaign.isConfigurationLocked ? 'warning' : 'success'">
+          {{ campaign.isConfigurationLocked ? 'Locked' : 'Open for configuration' }}
+        </ums-badge>
+      </div>
+      <dl class="campaign-config__summary">
+        <dt>Id</dt>
+        <dd>{{ campaign.id }}</dd>
+        <dt>Programs</dt>
+        <dd>{{ campaign.programIds.join(', ') }}</dd>
+        <dt>Application window</dt>
+        <dd>{{ campaign.applicationWindowStart }} &ndash; {{ campaign.applicationWindowEnd }}</dd>
+        <dt>Application fee type</dt>
+        <dd>{{ campaign.applicationFeeType }}</dd>
+        <dt>Confirmation fee type</dt>
+        <dd>{{ campaign.confirmationFeeType }}</dd>
+        <dt>Required documents</dt>
+        <dd>{{ campaign.requiredDocumentTypes.join(', ') || '--' }}</dd>
+      </dl>
+
+      @if (campaign.isConfigurationLocked) {
+        <p class="campaign-config__note">
+          This campaign's configuration is locked -- an Application has already been submitted
+          against it, so its eligibility/fee/seat-quota shape can no longer change
+          (requirement-spec.md §9 decision 6).
+        </p>
+      } @else {
+        <div
+          class="campaign-config__grid"
+          *appHasPermission="permissionKeys.admission.campaignManage"
+        >
+          <div class="campaign-config__card">
+            <h3>Add Eligibility Rule</h3>
+            <ums-form-field #ruleProgramField="umsFormField" label="Program id" [required]="true">
+              <ums-input
+                [id]="ruleProgramField.controlId()"
+                [value]="ruleProgramId()"
+                (valueChange)="ruleProgramId.set($event)"
+              />
+            </ums-form-field>
+            <ums-form-field #ruleScoreField="umsFormField" label="Minimum score" [required]="true">
+              <ums-input
+                type="number"
+                [id]="ruleScoreField.controlId()"
+                [value]="ruleMinimumScore()"
+                (valueChange)="ruleMinimumScore.set($event)"
+              />
+            </ums-form-field>
+            <label class="campaign-config__checkbox">
+              <input
+                type="checkbox"
+                [checked]="ruleIsGpaScale()"
+                (change)="ruleIsGpaScale.set(!ruleIsGpaScale())"
+              />
+              GPA scale (unchecked = percentage)
+            </label>
+            <ums-form-field #ruleBoardField="umsFormField" label="Required board (optional)">
+              <ums-input
+                [id]="ruleBoardField.controlId()"
+                [value]="ruleRequiredBoard()"
+                (valueChange)="ruleRequiredBoard.set($event)"
+              />
+            </ums-form-field>
+            <ums-button size="sm" (click)="submitEligibilityRule()">Add Rule</ums-button>
+          </div>
+
+          <div class="campaign-config__card">
+            <h3>Add Seat Quota</h3>
+            <ums-form-field #quotaProgramField="umsFormField" label="Program id" [required]="true">
+              <ums-input
+                [id]="quotaProgramField.controlId()"
+                [value]="quotaProgramId()"
+                (valueChange)="quotaProgramId.set($event)"
+              />
+            </ums-form-field>
+            <ums-form-field #quotaValueField="umsFormField" label="Quota" [required]="true">
+              <ums-input
+                type="number"
+                [id]="quotaValueField.controlId()"
+                [value]="quotaValue()"
+                (valueChange)="quotaValue.set($event)"
+              />
+            </ums-form-field>
+            <ums-button size="sm" (click)="submitSeatQuota()">Add Quota</ums-button>
+          </div>
+
+          <div class="campaign-config__card">
+            <h3>Add Required Document</h3>
+            <ums-form-field #docTypeField="umsFormField" label="Document type" [required]="true">
+              <ums-input
+                [id]="docTypeField.controlId()"
+                [value]="requiredDocumentType()"
+                (valueChange)="requiredDocumentType.set($event)"
+              />
+            </ums-form-field>
+            <ums-button size="sm" (click)="submitRequiredDocumentType()"
+              >Add Document Type</ums-button
+            >
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>

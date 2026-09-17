@@ -1,0 +1,163 @@
+@if (store.error()) {
+  <p role="alert" class="student-profile-360__error">{{ store.error() }}</p>
+}
+
+@if (store.student(); as student) {
+  <div class="student-profile-360">
+    <header class="student-profile-360__header">
+      <h1>{{ student.givenName }} {{ student.familyName }}</h1>
+      <ums-badge variant="info">{{ student.status }}</ums-badge>
+      <span class="student-profile-360__meta"
+        >{{ student.studentNumber }} &middot; {{ student.email }}</span
+      >
+    </header>
+
+    <ums-tab-bar
+      #tabBar="umsTabBar"
+      [items]="tabs"
+      [selectedIndex]="selectedTabIndex()"
+      (selectedIndexChange)="onTabChange($event)"
+    />
+
+    <div [attr.id]="tabBar.panelId(0)" role="tabpanel" [hidden]="selectedTabIndex() !== 0">
+      <ums-empty-state
+        title="Academic records not available yet"
+        description="Curriculum/grading screens land with the Academic module's own tickets."
+      />
+    </div>
+    <div [attr.id]="tabBar.panelId(1)" role="tabpanel" [hidden]="selectedTabIndex() !== 1">
+      <ums-empty-state
+        title="Financial records not available yet"
+        description="Fee/invoice/payment screens land with the Finance module's own tickets."
+      />
+    </div>
+    <div [attr.id]="tabBar.panelId(2)" role="tabpanel" [hidden]="selectedTabIndex() !== 2">
+      <ums-empty-state
+        title="Hostel records not available yet"
+        description="Allocation/complaint screens land with the Hostel module's own tickets."
+      />
+    </div>
+    <div [attr.id]="tabBar.panelId(3)" role="tabpanel" [hidden]="selectedTabIndex() !== 3">
+      <ums-empty-state
+        title="Library records not available yet"
+        description="Loan/reservation screens land with the Library module's own tickets."
+      />
+    </div>
+
+    <div [attr.id]="tabBar.panelId(4)" role="tabpanel" [hidden]="selectedTabIndex() !== 4">
+      @if (!hasIdentityUser()) {
+        <p class="student-profile-360__note">
+          This student has no linked Identity user id -- documents cannot be listed or generated.
+        </p>
+      } @else {
+        <div
+          class="student-profile-360__doc-triggers"
+          *appHasPermission="permissionKeys.documents.generate"
+        >
+          @for (trigger of documentTriggers; track trigger.type) {
+            <ums-button size="sm" (click)="triggerDocumentGeneration(trigger.type)">
+              {{ trigger.label }}
+            </ums-button>
+          }
+        </div>
+
+        @if (store.documentsError()) {
+          <p role="alert" class="student-profile-360__error">{{ store.documentsError() }}</p>
+        }
+
+        <table class="student-profile-360__documents">
+          <thead>
+            <tr>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col">Verification id</th>
+              <th scope="col">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (document of store.documents(); track document.id) {
+              <tr>
+                <td>{{ document.documentType }}</td>
+                <td>
+                  <ums-badge [variant]="document.status === 'Ready' ? 'success' : 'neutral'">{{
+                    document.status
+                  }}</ums-badge>
+                </td>
+                <td>{{ document.digitalVerificationId }}</td>
+                <td class="ums-tnum">{{ document.createdAt | slice: 0 : 10 }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4">No documents generated yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <div [attr.id]="tabBar.panelId(5)" role="tabpanel" [hidden]="selectedTabIndex() !== 5">
+      <p class="student-profile-360__note">
+        No endpoint exposes StudentStatusHistory directly -- this reads the Audit Log instead
+        (entity Student, this student's id).
+      </p>
+      @if (statusHistoryError()) {
+        <p role="alert" class="student-profile-360__error">{{ statusHistoryError() }}</p>
+      }
+      <ums-timeline [entries]="statusHistory()" />
+    </div>
+
+    <div [attr.id]="tabBar.panelId(6)" role="tabpanel" [hidden]="selectedTabIndex() !== 6">
+      <p class="student-profile-360__note">
+        No StudentRequest queue/list endpoint exists -- look up a request by id (e.g. from the Audit
+        Log or the student's own confirmation).
+      </p>
+      <div class="student-profile-360__request-lookup">
+        <ums-form-field #requestIdField="umsFormField" label="Request id">
+          <ums-input
+            [id]="requestIdField.controlId()"
+            [value]="lookupRequestId()"
+            (valueChange)="lookupRequestId.set($event)"
+          />
+        </ums-form-field>
+        <ums-button variant="secondary" (click)="loadStudentRequest()">Load</ums-button>
+      </div>
+
+      @if (store.requestError()) {
+        <p role="alert" class="student-profile-360__error">{{ store.requestError() }}</p>
+      }
+
+      @if (store.studentRequest(); as request) {
+        <dl class="student-profile-360__summary">
+          <dt>Type</dt>
+          <dd>{{ request.requestType }}</dd>
+          <dt>Status</dt>
+          <dd>
+            <ums-badge variant="info">{{ request.status }}</ums-badge>
+          </dd>
+          <dt>Details</dt>
+          <dd>{{ request.details }}</dd>
+        </dl>
+
+        <div
+          class="student-profile-360__request-actions"
+          *appHasPermission="permissionKeys.student.requestReview"
+        >
+          <ums-button (click)="approveRequest()">Approve</ums-button>
+          <ums-form-field
+            #reasonField="umsFormField"
+            label="Reason for rejection"
+            [required]="true"
+          >
+            <ums-input
+              [id]="reasonField.controlId()"
+              [value]="rejectReason()"
+              (valueChange)="rejectReason.set($event)"
+            />
+          </ums-form-field>
+          <ums-button variant="danger" (click)="rejectRequest()">Reject</ums-button>
+        </div>
+      }
+    </div>
+  </div>
+}

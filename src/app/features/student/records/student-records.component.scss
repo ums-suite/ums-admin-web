@@ -1,0 +1,76 @@
+.student-records {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  padding: var(--space-5, 20px);
+}
+
+.student-records__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.student-records__lookup {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3, 12px);
+  max-inline-size: 480px;
+}
+
+.student-records__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.student-records__error {
+  color: var(--color-danger);
+}
+
+.student-records__panel {
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2, 8px);
+  background: var(--color-surface);
+}
+
+.student-records__panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  margin-block-end: var(--space-3, 12px);
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+.student-records__summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2, 8px) var(--space-3, 12px);
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.student-records__status-change {
+  margin-block-start: var(--space-4, 16px);
+  padding-block-start: var(--space-4, 16px);
+  border-block-start: 1px solid var(--color-border);
+
+  h3 {
+    margin-block-start: 0;
+    font-size: 0.9rem;
+  }
+}

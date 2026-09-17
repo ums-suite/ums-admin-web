@@ -1,0 +1,52 @@
+<div class="org-designations">
+  <div class="org-designations__toolbar">
+    <h2>Designation Catalog</h2>
+    <ums-button
+      *appHasPermission="permissionKeys.organization.manage"
+      size="sm"
+      (click)="openCreateModal()"
+    >
+      New Designation
+    </ums-button>
+  </div>
+
+  @if (store.error()) {
+    <p role="alert" class="org-designations__error">{{ store.error() }}</p>
+  }
+
+  <table class="org-designations__table">
+    <thead>
+      <tr>
+        <th scope="col">Title</th>
+        <th scope="col">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (designation of store.designations(); track designation.id) {
+        <tr>
+          <td>{{ designation.title }}</td>
+          <td class="ums-tnum">{{ designation.createdAt | slice: 0 : 10 }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="2">No designations yet.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<ums-modal [open]="createModalOpen()" title="New Designation" (closed)="createModalOpen.set(false)">
+  <ums-form-field #titleField="umsFormField" label="Title" [required]="true">
+    <ums-input
+      [id]="titleField.controlId()"
+      [value]="createTitle()"
+      (valueChange)="createTitle.set($event)"
+    />
+  </ums-form-field>
+
+  <div umsModalFooter>
+    <ums-button variant="ghost" (click)="createModalOpen.set(false)">Cancel</ums-button>
+    <ums-button (click)="submitCreate()">Create</ums-button>
+  </div>
+</ums-modal>

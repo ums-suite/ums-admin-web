@@ -1,0 +1,93 @@
+<div class="student-records">
+  <div class="student-records__toolbar">
+    <h1>Student Records</h1>
+    <ums-button
+      *appHasPermission="permissionKeys.student.bulkImportExecute"
+      variant="secondary"
+      (click)="goToBulkImport()"
+    >
+      Bulk Import
+    </ums-button>
+  </div>
+
+  <section class="student-records__lookup">
+    <ums-form-field #lookupField="umsFormField" label="Student id">
+      <ums-input
+        [id]="lookupField.controlId()"
+        [value]="lookupStudentId()"
+        (valueChange)="lookupStudentId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadStudent()">Load</ums-button>
+  </section>
+  <p class="student-records__note">
+    No student search/list endpoint exists in ums-core today -- lookup is by Student id only.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="student-records__error">{{ store.error() }}</p>
+  }
+
+  @if (conflict(); as conflictState) {
+    <app-version-conflict-banner
+      [message]="
+        'This student record changed since you loaded it -- it is now ' +
+        conflictState.currentState.status +
+        ' (version ' +
+        conflictState.currentState.version +
+        ').'
+      "
+      (reload)="reloadAfterConflict()"
+    />
+  }
+
+  @if (store.currentStudent(); as student) {
+    <section class="student-records__panel">
+      <div class="student-records__panel-header">
+        <h2>{{ student.givenName }} {{ student.familyName }}</h2>
+        <ums-badge variant="info">{{ student.status }}</ums-badge>
+        <ums-button variant="ghost" size="sm" (click)="goToProfile360(student.id)">
+          Open Student 360
+        </ums-button>
+      </div>
+      <dl class="student-records__summary">
+        <dt>Student number</dt>
+        <dd>{{ student.studentNumber }}</dd>
+        <dt>Department</dt>
+        <dd>{{ student.departmentId }}</dd>
+        <dt>Program</dt>
+        <dd>{{ student.programId }}</dd>
+        <dt>Email</dt>
+        <dd>{{ student.email }}</dd>
+        <dt>Version</dt>
+        <dd class="ums-tnum">{{ student.version }}</dd>
+      </dl>
+
+      <div
+        class="student-records__status-change"
+        *appHasPermission="permissionKeys.student.statusChange"
+      >
+        <h3>Academic-Status Lifecycle Transition</h3>
+        @if (statusOptions().length === 0) {
+          <p class="student-records__note">
+            {{ student.status }} is a terminal status -- no further transition is legal.
+          </p>
+        } @else {
+          <ums-form-field #statusField="umsFormField" label="New status" [required]="true">
+            <ums-select
+              [id]="statusField.controlId()"
+              [options]="statusOptions()"
+              [value]="newStatus()"
+              (valueChange)="newStatus.set($event)"
+            />
+          </ums-form-field>
+          <p class="student-records__note">
+            "Transferred" is the confirmed real mechanism for a program/department record transfer
+            in ums-core today -- there is no separate Department/Program reassignment endpoint.
+          </p>
+          <ums-button (click)="submitStatusChange()">Change Status</ums-button>
+        }
+      </div>
+    </section>
+  }
+</div>
