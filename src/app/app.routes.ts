@@ -122,7 +122,10 @@ export const routes: Routes = [
           {
             path: 'bulk-import',
             canActivate: [permissionGuard(PERMISSION_KEYS.student.bulkImportExecute)],
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/student/bulk-import/student-bulk-import.component').then(
+                (m) => m.StudentBulkImportComponent,
+              ),
             data: { label: 'Students -- Bulk Import' },
           },
           {
