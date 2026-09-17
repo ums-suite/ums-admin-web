@@ -131,7 +131,10 @@ export const routes: Routes = [
           {
             path: 'profile/:studentId',
             canActivate: [permissionGuard(PERMISSION_KEYS.student.profileRead)],
-            loadComponent: placeholder,
+            loadComponent: () =>
+              import('./features/student/profile-360/student-profile-360.component').then(
+                (m) => m.StudentProfile360Component,
+              ),
             data: { label: 'Student 360' },
           },
         ],

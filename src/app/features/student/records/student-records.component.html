@@ -46,6 +46,9 @@
       <div class="student-records__panel-header">
         <h2>{{ student.givenName }} {{ student.familyName }}</h2>
         <ums-badge variant="info">{{ student.status }}</ums-badge>
+        <ums-button variant="ghost" size="sm" (click)="goToProfile360(student.id)">
+          Open Student 360
+        </ums-button>
       </div>
       <dl class="student-records__summary">
         <dt>Student number</dt>

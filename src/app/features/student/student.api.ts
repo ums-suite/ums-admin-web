@@ -3,10 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { APP_CONFIG } from '../../core/config/app-config';
 import type {
+  ApproveStudentRequestBody,
   ChangeStudentStatusRequest,
+  RejectStudentRequestBody,
   StudentBulkImportJobDto,
   StudentBulkImportJobReportDto,
   StudentDto,
+  StudentRequestDto,
   UploadStudentBulkImportRequest,
 } from './student.types';
 
@@ -54,6 +57,28 @@ export class StudentApi {
   getBulkImportReport(jobId: string): Observable<StudentBulkImportJobReportDto> {
     return this.http.get<StudentBulkImportJobReportDto>(
       `${this.baseUrl}/students/bulk-import/${jobId}`,
+    );
+  }
+
+  /** No list/queue endpoint exists -- see `student.types.ts`'s own doc. */
+  getStudentRequestById(id: string): Observable<StudentRequestDto> {
+    return this.http.get<StudentRequestDto>(`${this.baseUrl}/students/requests/${id}`);
+  }
+
+  approveStudentRequest(
+    id: string,
+    body: ApproveStudentRequestBody,
+  ): Observable<StudentRequestDto> {
+    return this.http.post<StudentRequestDto>(
+      `${this.baseUrl}/students/requests/${id}/approve`,
+      body,
+    );
+  }
+
+  rejectStudentRequest(id: string, body: RejectStudentRequestBody): Observable<StudentRequestDto> {
+    return this.http.post<StudentRequestDto>(
+      `${this.baseUrl}/students/requests/${id}/reject`,
+      body,
     );
   }
 }

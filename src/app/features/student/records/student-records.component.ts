@@ -95,6 +95,10 @@ export class StudentRecordsComponent {
     this.router.navigate(['/student/bulk-import']);
   }
 
+  protected goToProfile360(studentId: string): void {
+    this.router.navigate(['/student/profile', studentId]);
+  }
+
   /**
    * Deliberately NOT built on the shared `AuditedActionService.confirmAndRun` -- that helper
    * swallows every failure into a generic error toast (by design, so its Observable never

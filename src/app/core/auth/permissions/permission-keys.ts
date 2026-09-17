@@ -8,7 +8,12 @@
  * `StudentPermissions`, `AdmissionPermissions` C# constants, read directly, not guessed):
  * `UserRead`, `UserManage`, `RoleManage`, `RoleAssign`, `PermissionRead` (Identity);
  * `ProfileRead`, `StatusChange`, `BulkImportExecute`, `RequestReview` (Student);
- * `CampaignManage`, `ApplicationReview` (Admission).
+ * `CampaignManage`, `ApplicationReview` (Admission);
+ * `Generate`, `Read`, `Revoke` (Documents -- `UMS.Modules.Documents.Application.Permissions.DocumentPermissions`,
+ * whose own doc comment confirms these three are deliberately THREE-segment keys
+ * (`document.document.<action>`), a documented deviation from the module's own two-segment
+ * `document.<action>` spec literal, to satisfy Identity's real `<module>.<resource>.<action>`
+ * catalog-validation pattern).
  *
  * Everything else below (Organization/Academic/Faculty/Finance/Hostel/Library/Content/
  * Documents/Reporting/Audit/Configuration keys) is this app's OWN BEST-EFFORT, ASSUMED literal
@@ -40,6 +45,12 @@ export const PERMISSION_KEYS = {
     statusChange: 'student.status.change',
     bulkImportExecute: 'student.bulk-import.execute',
     requestReview: 'student.request.review',
+  },
+  // Confirmed real -- see class doc.
+  documents: {
+    generate: 'document.document.generate',
+    read: 'document.document.read',
+    revoke: 'document.document.revoke',
   },
   reporting: {
     // These four match ums-core's real, confirmed per-domain permission-gating pattern

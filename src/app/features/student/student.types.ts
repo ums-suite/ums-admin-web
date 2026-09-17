@@ -22,6 +22,10 @@
  *   the CURRENT `Status`; ADMIN-17's own status-history tab will need to fall back to the Audit
  *   Log (`entityType=Student`, `action=status_change`), the same interim mechanism this app
  *   already uses for "name your own audit trail" elsewhere.
+ * - No `StudentRequest` LIST/queue endpoint exists -- only `GET /students/requests/{id}` (get one),
+ *   `POST /students/requests/{id}/approve`, and `POST /students/requests/{id}/reject`. ADMIN-17's
+ *   "StudentRequest approval queues" is therefore, like Admission's own applicant review, an
+ *   id-based lookup + decision workflow rather than a real browsable queue.
  */
 export interface StudentDto {
   readonly id: string;
@@ -138,4 +142,33 @@ export interface StudentBulkImportRowInput {
 
 export interface UploadStudentBulkImportRequest {
   readonly rows: readonly StudentBulkImportRowInput[];
+}
+
+/** ID reissue, transcript request, and grievance -- requirement-spec.md §3.6's three StudentRequest types. */
+export type StudentRequestType = 'IdReissue' | 'TranscriptRequest' | 'Grievance';
+
+export interface StudentRequestDto {
+  readonly id: string;
+  readonly studentId: string;
+  readonly requestType: StudentRequestType | string;
+  readonly details: string;
+  readonly status: string;
+  readonly reviewScopeNodeId: string | null;
+  readonly isAgainstOwnDepartmentHead: boolean;
+  readonly generatedDocumentId: string | null;
+  readonly decidedByUserId: string | null;
+  readonly decisionReason: string | null;
+  readonly submittedAt: string;
+  readonly decidedAt: string | null;
+  readonly fulfilledAt: string | null;
+  readonly version: number;
+}
+
+export interface RejectStudentRequestBody {
+  readonly reason: string;
+  readonly version: number;
+}
+
+export interface ApproveStudentRequestBody {
+  readonly version: number;
 }
