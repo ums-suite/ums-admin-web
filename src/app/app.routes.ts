@@ -394,7 +394,46 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'documents', loadComponent: placeholder, data: { label: 'Documents' } },
+      {
+        path: 'documents',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'registry' },
+          {
+            path: 'registry',
+            canActivate: [permissionGuard(PERMISSION_KEYS.documents.read)],
+            loadComponent: () =>
+              import('./features/documents/registry/documents-registry.component').then(
+                (m) => m.DocumentsRegistryComponent,
+              ),
+            data: { label: 'Documents -- Registry' },
+          },
+          {
+            path: 'templates',
+            loadComponent: () =>
+              import('./features/documents/templates/documents-templates.component').then(
+                (m) => m.DocumentsTemplatesComponent,
+              ),
+            data: { label: 'Documents -- Templates' },
+          },
+          {
+            path: 'bulk-generation',
+            canActivate: [permissionGuard(PERMISSION_KEYS.documents.generateBulk)],
+            loadComponent: () =>
+              import('./features/documents/bulk-generation/documents-bulk-generation.component').then(
+                (m) => m.DocumentsBulkGenerationComponent,
+              ),
+            data: { label: 'Documents -- Bulk Generation' },
+          },
+          {
+            path: 'verify',
+            loadComponent: () =>
+              import('./features/documents/verify/documents-verify.component').then(
+                (m) => m.DocumentsVerifyComponent,
+              ),
+            data: { label: 'Documents -- Verify' },
+          },
+        ],
+      },
       { path: 'reporting', loadComponent: placeholder, data: { label: 'Reporting' } },
       { path: 'audit', loadComponent: placeholder, data: { label: 'Audit Log' } },
       { path: 'configuration', loadComponent: placeholder, data: { label: 'Configuration' } },

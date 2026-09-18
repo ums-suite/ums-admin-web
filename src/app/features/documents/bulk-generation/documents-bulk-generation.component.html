@@ -1,0 +1,52 @@
+<div class="documents-bulk-generation">
+  <h1>Bulk Document Generation</h1>
+  <p class="documents-bulk-generation__note">
+    There is no filter-based bulk-select -- every target owner/source-reference pair must be
+    enumerated below. GET /jobs/{{ '{id}' }} only exposes aggregate counters, never a per-item
+    detail, so failures below are shown only as a dead-lettered count.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="documents-bulk-generation__error">{{ store.error() }}</p>
+  }
+
+  <section
+    class="documents-bulk-generation__section"
+    *appHasPermission="permissionKeys.documents.generateBulk"
+  >
+    <h2>Submit</h2>
+    <div class="documents-bulk-generation__form">
+      <ums-form-field #documentTypeField="umsFormField" label="Document type" [required]="true">
+        <ums-select
+          [id]="documentTypeField.controlId()"
+          [options]="documentTypeOptions"
+          [value]="documentType()"
+          (valueChange)="documentType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #itemsCsvField="umsFormField"
+        label="Items -- one ownerId,sourceReferenceId pair per line"
+        [required]="true"
+      >
+        <ums-textarea
+          [id]="itemsCsvField.controlId()"
+          [value]="itemsCsv()"
+          (valueChange)="itemsCsv.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submit()">Submit job</ums-button>
+    </div>
+  </section>
+
+  @if (isTracking()) {
+    <section class="documents-bulk-generation__section">
+      <h2>Progress</h2>
+      @if (snapshot(); as snap) {
+        <ums-progress-bar [value]="snap.progressPercent ?? 0" />
+        <p>{{ snap.message }}</p>
+        <p>Status: {{ snap.status }}</p>
+      }
+    </section>
+  }
+</div>

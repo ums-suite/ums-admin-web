@@ -28,7 +28,7 @@ export const NAV_ITEMS: readonly AdminNavItem[] = [
   { path: '/hostel/inventory', label: 'Hostel', icon: 'map-pin' },
   { path: '/library/catalog', label: 'Library', icon: 'book-bookmark' },
   { path: '/content/notices', label: 'Content', icon: 'file-text' },
-  { path: '/documents', label: 'Documents', icon: 'certificate' },
+  { path: '/documents/registry', label: 'Documents', icon: 'certificate' },
   { path: '/reporting', label: 'Reporting', icon: 'chart-bar' },
   { path: '/audit', label: 'Audit Log', icon: 'list-bullets' },
   { path: '/configuration', label: 'Configuration', icon: 'sliders' },
