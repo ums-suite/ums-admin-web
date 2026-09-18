@@ -304,13 +304,203 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'hostel', loadComponent: placeholder, data: { label: 'Hostel' } },
-      { path: 'library', loadComponent: placeholder, data: { label: 'Library' } },
-      { path: 'content', loadComponent: placeholder, data: { label: 'Content' } },
-      { path: 'documents', loadComponent: placeholder, data: { label: 'Documents' } },
-      { path: 'reporting', loadComponent: placeholder, data: { label: 'Reporting' } },
-      { path: 'audit', loadComponent: placeholder, data: { label: 'Audit Log' } },
-      { path: 'configuration', loadComponent: placeholder, data: { label: 'Configuration' } },
+      {
+        path: 'hostel',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'inventory' },
+          {
+            path: 'inventory',
+            canActivate: [permissionGuard(PERMISSION_KEYS.hostel.inventoryManage)],
+            loadComponent: () =>
+              import('./features/hostel/inventory/hostel-inventory.component').then(
+                (m) => m.HostelInventoryComponent,
+              ),
+            data: { label: 'Hostel -- Inventory' },
+          },
+          {
+            path: 'applications',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.hostel.windowManage,
+                PERMISSION_KEYS.hostel.applicationReview,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/hostel/applications/hostel-applications.component').then(
+                (m) => m.HostelApplicationsComponent,
+              ),
+            data: { label: 'Hostel -- Applications' },
+          },
+          {
+            path: 'allocations',
+            loadComponent: () =>
+              import('./features/hostel/allocations/hostel-allocations.component').then(
+                (m) => m.HostelAllocationsComponent,
+              ),
+            data: { label: 'Hostel -- Allocations & Complaints' },
+          },
+        ],
+      },
+      {
+        path: 'library',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'catalog' },
+          {
+            path: 'catalog',
+            loadComponent: () =>
+              import('./features/library/catalog/library-catalog.component').then(
+                (m) => m.LibraryCatalogComponent,
+              ),
+            data: { label: 'Library -- Catalog' },
+          },
+          {
+            path: 'circulation',
+            loadComponent: () =>
+              import('./features/library/circulation/library-circulation.component').then(
+                (m) => m.LibraryCirculationComponent,
+              ),
+            data: { label: 'Library -- Loans, Reservations & Fines' },
+          },
+        ],
+      },
+      {
+        path: 'content',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'notices' },
+          {
+            path: 'notices',
+            canActivate: [permissionGuard(PERMISSION_KEYS.content.noticeRead)],
+            loadComponent: () =>
+              import('./features/content/notices/content-notices.component').then(
+                (m) => m.ContentNoticesComponent,
+              ),
+            data: { label: 'Content -- Notices' },
+          },
+          {
+            path: 'events',
+            loadComponent: () =>
+              import('./features/content/events/content-events.component').then(
+                (m) => m.ContentEventsComponent,
+              ),
+            data: { label: 'Content -- Events' },
+          },
+          {
+            path: 'banners',
+            loadComponent: () =>
+              import('./features/content/banners/content-banners.component').then(
+                (m) => m.ContentBannersComponent,
+              ),
+            data: { label: 'Content -- Banners' },
+          },
+        ],
+      },
+      {
+        path: 'documents',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'registry' },
+          {
+            path: 'registry',
+            canActivate: [permissionGuard(PERMISSION_KEYS.documents.read)],
+            loadComponent: () =>
+              import('./features/documents/registry/documents-registry.component').then(
+                (m) => m.DocumentsRegistryComponent,
+              ),
+            data: { label: 'Documents -- Registry' },
+          },
+          {
+            path: 'templates',
+            loadComponent: () =>
+              import('./features/documents/templates/documents-templates.component').then(
+                (m) => m.DocumentsTemplatesComponent,
+              ),
+            data: { label: 'Documents -- Templates' },
+          },
+          {
+            path: 'bulk-generation',
+            canActivate: [permissionGuard(PERMISSION_KEYS.documents.generateBulk)],
+            loadComponent: () =>
+              import('./features/documents/bulk-generation/documents-bulk-generation.component').then(
+                (m) => m.DocumentsBulkGenerationComponent,
+              ),
+            data: { label: 'Documents -- Bulk Generation' },
+          },
+          {
+            path: 'verify',
+            loadComponent: () =>
+              import('./features/documents/verify/documents-verify.component').then(
+                (m) => m.DocumentsVerifyComponent,
+              ),
+            data: { label: 'Documents -- Verify' },
+          },
+        ],
+      },
+      {
+        path: 'reporting',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'dashboards' },
+          {
+            path: 'dashboards',
+            loadComponent: () =>
+              import('./features/reporting/dashboards/reporting-dashboards.component').then(
+                (m) => m.ReportingDashboardsComponent,
+              ),
+            data: { label: 'Reporting -- Dashboards' },
+          },
+          {
+            path: 'builder',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.reporting.regulatoryManage,
+                PERMISSION_KEYS.reporting.regulatoryRun,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/reporting/builder/reporting-builder.component').then(
+                (m) => m.ReportingBuilderComponent,
+              ),
+            data: { label: 'Reporting -- Report Builder' },
+          },
+        ],
+      },
+      {
+        path: 'audit',
+        canActivate: [permissionGuard(PERMISSION_KEYS.audit.entryRead)],
+        loadComponent: () =>
+          import('./features/audit/explorer/audit-explorer.component').then(
+            (m) => m.AuditExplorerComponent,
+          ),
+        data: { label: 'Audit Log' },
+      },
+      {
+        path: 'configuration',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'academic-sessions' },
+          {
+            path: 'academic-sessions',
+            loadComponent: () =>
+              import('./features/configuration/academic-sessions/system-config-academic-sessions.component').then(
+                (m) => m.SystemConfigAcademicSessionsComponent,
+              ),
+            data: { label: 'Configuration -- Academic Sessions' },
+          },
+          {
+            path: 'fee-templates',
+            loadComponent: () =>
+              import('./features/configuration/fee-templates/system-config-fee-templates.component').then(
+                (m) => m.SystemConfigFeeTemplatesComponent,
+              ),
+            data: { label: 'Configuration -- Fee Structure Templates' },
+          },
+          {
+            path: 'notification-templates',
+            loadComponent: () =>
+              import('./features/configuration/notification-templates/system-config-notification-templates.component').then(
+                (m) => m.SystemConfigNotificationTemplatesComponent,
+              ),
+            data: { label: 'Configuration -- Notification Templates' },
+          },
+        ],
+      },
       { path: '**', loadComponent: placeholder, data: { label: 'This page' } },
     ],
   },

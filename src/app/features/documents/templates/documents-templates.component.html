@@ -1,0 +1,91 @@
+<div class="documents-templates">
+  <h1>Document Templates</h1>
+  <p class="documents-templates__note">
+    No edit or delete exists -- publishing a new version is another create call. All versions for a
+    type are listed here; "current" is always the highest version.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="documents-templates__error">{{ store.error() }}</p>
+  }
+
+  <section class="documents-templates__section">
+    <h2>All Versions</h2>
+    <div class="documents-templates__form">
+      <ums-form-field #listDocumentTypeField="umsFormField" label="Document type (optional filter)">
+        <ums-input
+          [id]="listDocumentTypeField.controlId()"
+          [value]="listDocumentType()"
+          (valueChange)="listDocumentType.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadTemplates()">Load templates</ums-button>
+    </div>
+    <ul>
+      @for (template of store.templates(); track template.id) {
+        <li>
+          {{ template.documentType }} v{{ template.version }} --
+          {{ template.translations[0]?.title }}
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="documents-templates__section">
+    <h2>Current Version</h2>
+    <div class="documents-templates__form">
+      <ums-form-field
+        #currentDocumentTypeField="umsFormField"
+        label="Document type"
+        [required]="true"
+      >
+        <ums-select
+          [id]="currentDocumentTypeField.controlId()"
+          [options]="documentTypeOptions"
+          [value]="currentDocumentType()"
+          (valueChange)="currentDocumentType.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadCurrent()">Load current</ums-button>
+    </div>
+    @if (store.currentTemplate(); as template) {
+      <p>v{{ template.version }} -- {{ template.translations[0]?.title }}</p>
+    }
+  </section>
+
+  <section
+    class="documents-templates__section"
+    *appHasPermission="permissionKeys.documents.templateManage"
+  >
+    <h2>Publish New Version</h2>
+    <div class="documents-templates__form">
+      <ums-form-field #newDocumentTypeField="umsFormField" label="Document type" [required]="true">
+        <ums-select
+          [id]="newDocumentTypeField.controlId()"
+          [options]="documentTypeOptions"
+          [value]="newDocumentType()"
+          (valueChange)="newDocumentType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newLayoutAssetKeyField="umsFormField" label="Layout asset key">
+        <ums-input
+          [id]="newLayoutAssetKeyField.controlId()"
+          [value]="newLayoutAssetKey()"
+          (valueChange)="newLayoutAssetKey.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #newEnglishTitleField="umsFormField"
+        label="English (en) title"
+        [required]="true"
+      >
+        <ums-input
+          [id]="newEnglishTitleField.controlId()"
+          [value]="newEnglishTitle()"
+          (valueChange)="newEnglishTitle.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreate()">Publish version</ums-button>
+    </div>
+  </section>
+</div>

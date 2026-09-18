@@ -1,0 +1,78 @@
+<div class="content-banners">
+  <h1>Banners</h1>
+  <p class="content-banners__note">
+    Banner has no translations at all -- explicitly not localized.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="content-banners__error">{{ store.error() }}</p>
+  }
+
+  <section class="content-banners__section">
+    <h2>Active Banners</h2>
+    <ums-button variant="secondary" (click)="loadBanners()">Load banners</ums-button>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.banners()"
+      [rowId]="rowId"
+      emptyMessage="No banners loaded yet."
+      caption="Banners"
+    />
+    @for (banner of store.banners(); track banner.id) {
+      <div class="content-banners__row">
+        <span>{{ banner.headline }} ({{ banner.status }})</span>
+        <div
+          class="content-banners__actions"
+          *appHasPermission="permissionKeys.content.bannerPublish"
+        >
+          <ums-button variant="secondary" (click)="transition(banner, 'schedule')"
+            >Schedule</ums-button
+          >
+          <ums-button (click)="transition(banner, 'publish')">Publish</ums-button>
+          <ums-button variant="tertiary" (click)="transition(banner, 'archive')"
+            >Archive</ums-button
+          >
+        </div>
+        @if (conflictBannerId() === banner.id) {
+          <app-version-conflict-banner (reload)="reloadAfterConflict()" />
+        }
+      </div>
+    }
+  </section>
+
+  <section class="content-banners__section" *appHasPermission="permissionKeys.content.bannerWrite">
+    <h2>Create Banner</h2>
+    <div class="content-banners__form">
+      <ums-form-field #newHeadlineField="umsFormField" label="Headline" [required]="true">
+        <ums-input
+          [id]="newHeadlineField.controlId()"
+          [value]="newHeadline()"
+          (valueChange)="newHeadline.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newImageUrlField="umsFormField" label="Image URL" [required]="true">
+        <ums-input
+          [id]="newImageUrlField.controlId()"
+          [value]="newImageUrl()"
+          (valueChange)="newImageUrl.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newLinkUrlField="umsFormField" label="Link URL">
+        <ums-input
+          [id]="newLinkUrlField.controlId()"
+          [value]="newLinkUrl()"
+          (valueChange)="newLinkUrl.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newSortOrderField="umsFormField" label="Sort order" [required]="true">
+        <ums-input
+          type="number"
+          [id]="newSortOrderField.controlId()"
+          [value]="newSortOrder()"
+          (valueChange)="newSortOrder.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreate()">Create banner</ums-button>
+    </div>
+  </section>
+</div>

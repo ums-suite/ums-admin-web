@@ -1,0 +1,31 @@
+.reporting-dashboards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  padding: var(--space-5, 20px);
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.reporting-dashboards__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.reporting-dashboards__error {
+  color: var(--color-danger);
+}
+
+.reporting-dashboards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+.reporting-dashboards__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}

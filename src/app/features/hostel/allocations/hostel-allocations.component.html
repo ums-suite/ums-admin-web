@@ -1,0 +1,151 @@
+<div class="hostel-allocations">
+  <h1>Hostel Allocations &amp; Complaints</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="hostel-allocations__error">{{ store.error() }}</p>
+  }
+
+  <section class="hostel-allocations__section">
+    <h2>My Allocations</h2>
+    <ums-button variant="secondary" (click)="loadMyAllocations()">Load my allocations</ums-button>
+    <ums-data-table
+      [columns]="allocationColumns"
+      [rows]="store.myAllocations()"
+      [rowId]="rowId"
+      emptyMessage="No allocations loaded yet."
+      caption="My allocations"
+    />
+    <div class="hostel-allocations__form">
+      <ums-form-field
+        #checkOutTypeField="umsFormField"
+        label="Check-out type (ignored if you are the owner)"
+      >
+        <ums-select
+          [id]="checkOutTypeField.controlId()"
+          [options]="checkOutTypeOptions"
+          [value]="checkOutTypeSelection()"
+          (valueChange)="checkOutTypeSelection.set($event)"
+        />
+      </ums-form-field>
+    </div>
+    @for (allocation of store.myAllocations(); track allocation.id) {
+      <div class="hostel-allocations__row">
+        <span>{{ allocation.id }} ({{ allocation.status }})</span>
+        <ums-button
+          *appHasPermission="permissionKeys.hostel.allocationCheckin"
+          variant="secondary"
+          (click)="checkIn(allocation.id)"
+          >Check in</ums-button
+        >
+        <ums-button
+          *appHasPermission="permissionKeys.hostel.allocationCheckout"
+          variant="tertiary"
+          (click)="checkOut(allocation.id)"
+          >Check out</ums-button
+        >
+      </div>
+    }
+  </section>
+
+  <section class="hostel-allocations__section">
+    <h2>Review Flags</h2>
+    <ums-form-field #flagsAllocationIdField="umsFormField" label="Allocation id">
+      <ums-input
+        [id]="flagsAllocationIdField.controlId()"
+        [value]="flagsAllocationId()"
+        (valueChange)="flagsAllocationId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadReviewFlags()">Load flags</ums-button>
+    <ul>
+      @for (flag of currentFlags(); track flag.id) {
+        <li>{{ flag.flag }} -- {{ flag.detail }} ({{ flag.raisedAt }})</li>
+      }
+    </ul>
+  </section>
+
+  <section class="hostel-allocations__section">
+    <h2>Submit Complaint</h2>
+    <div class="hostel-allocations__form">
+      <ums-form-field
+        #complaintAllocationIdField="umsFormField"
+        label="Allocation id"
+        [required]="true"
+      >
+        <ums-input
+          [id]="complaintAllocationIdField.controlId()"
+          [value]="complaintAllocationId()"
+          (valueChange)="complaintAllocationId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #complaintCategoryField="umsFormField" label="Category" [required]="true">
+        <ums-select
+          [id]="complaintCategoryField.controlId()"
+          [options]="complaintCategoryOptions"
+          [value]="complaintCategory()"
+          (valueChange)="complaintCategory.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #complaintDescriptionField="umsFormField"
+        label="Description"
+        [required]="true"
+      >
+        <ums-textarea
+          [id]="complaintDescriptionField.controlId()"
+          [value]="complaintDescription()"
+          (valueChange)="complaintDescription.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitComplaint()">Submit complaint</ums-button>
+    </div>
+    <ums-button variant="secondary" (click)="loadMyComplaints()">Load my complaints</ums-button>
+    <ums-data-table
+      [columns]="complaintColumns"
+      [rows]="store.myComplaints()"
+      [rowId]="rowId"
+      emptyMessage="No complaints loaded yet."
+      caption="My complaints"
+    />
+  </section>
+
+  <section
+    class="hostel-allocations__section"
+    *appHasPermission="permissionKeys.hostel.complaintResolve"
+  >
+    <h2>Resolve Complaint</h2>
+    <p class="hostel-allocations__note">
+      No staff-facing complaint list/GET-by-id endpoint exists -- resolve only a complaint id you
+      already have (e.g. surfaced via the Audit Log).
+    </p>
+    <div class="hostel-allocations__form">
+      <ums-form-field
+        #resolveComplaintIdField="umsFormField"
+        label="Complaint id"
+        [required]="true"
+      >
+        <ums-input
+          [id]="resolveComplaintIdField.controlId()"
+          [value]="resolveComplaintId()"
+          (valueChange)="resolveComplaintId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #resolveStatusField="umsFormField" label="Status" [required]="true">
+        <ums-select
+          [id]="resolveStatusField.controlId()"
+          [options]="resolveStatusOptions"
+          [value]="resolveStatus()"
+          (valueChange)="resolveStatus.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #resolveNoteField="umsFormField" label="Resolution note">
+        <ums-textarea
+          [id]="resolveNoteField.controlId()"
+          [value]="resolveNote()"
+          (valueChange)="resolveNote.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="resolveComplaint()">Resolve</ums-button>
+    </div>
+  </section>
+</div>

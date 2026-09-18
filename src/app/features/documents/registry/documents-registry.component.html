@@ -1,0 +1,67 @@
+<div class="documents-registry">
+  <h1>Generated Documents Registry</h1>
+  <p class="documents-registry__note">
+    The list below always shows a null download link -- ums-core only returns a real, time-limited
+    presigned URL from a per-document lookup once the document is Ready.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="documents-registry__error">{{ store.error() }}</p>
+  }
+
+  <section class="documents-registry__section" *appHasPermission="permissionKeys.documents.read">
+    <h2>By Owner</h2>
+    <div class="documents-registry__form">
+      <ums-form-field #ownerIdField="umsFormField" label="Owner id">
+        <ums-input
+          [id]="ownerIdField.controlId()"
+          [value]="lookupOwnerId()"
+          (valueChange)="lookupOwnerId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadForOwner()">Load</ums-button>
+    </div>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="currentList()"
+      [rowId]="rowId"
+      emptyMessage="No documents loaded yet."
+      caption="Documents by owner"
+    />
+  </section>
+
+  <section class="documents-registry__section" *appHasPermission="permissionKeys.documents.read">
+    <h2>Lookup by Id (real download link + revoke)</h2>
+    <div class="documents-registry__form">
+      <ums-form-field #documentIdField="umsFormField" label="Document id">
+        <ums-input
+          [id]="documentIdField.controlId()"
+          [value]="lookupDocumentId()"
+          (valueChange)="lookupDocumentId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadById()">Load</ums-button>
+    </div>
+
+    @if (store.currentDocument(); as document) {
+      <dl class="documents-registry__summary">
+        <dt>Status</dt>
+        <dd>{{ document.status }}</dd>
+        <dt>Download</dt>
+        <dd>
+          @if (document.downloadUrl) {
+            <a [href]="document.downloadUrl" target="_blank" rel="noopener">Download</a>
+          } @else {
+            Not available ({{ document.status === 'Ready' ? 'no link returned' : 'not Ready yet' }})
+          }
+        </dd>
+      </dl>
+      <ums-button
+        *appHasPermission="permissionKeys.documents.revoke"
+        variant="tertiary"
+        (click)="revoke()"
+        >Revoke</ums-button
+      >
+    }
+  </section>
+</div>

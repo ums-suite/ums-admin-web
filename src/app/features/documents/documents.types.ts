@@ -50,5 +50,100 @@ export interface GeneratedDocumentDto {
   readonly revokedAt: string | null;
   readonly revokedReason: string | null;
   readonly supersededByDocumentId: string | null;
+  /**
+   * Confirmed real gap (ADMIN-31): `GET /documents` (list) ALWAYS returns `null` here for every
+   * row -- a real, time-limited presigned URL is only ever present on the single-record
+   * `GET /documents/{id}` response, and only once `status === 'Ready'`. Never render this field
+   * from a list response as if it were a real link.
+   */
   readonly downloadUrl: string | null;
+}
+
+export type GeneratedDocumentStatus =
+  'Pending' | 'Uploaded' | 'Ready' | 'Revoked' | 'Superseded' | 'Failed';
+
+/**
+ * ADMIN-31: Document Templates, bulk generation (as a real async job, reusing `shared/jobs/`),
+ * public digital verification, and the presigned-download-url gotcha above -- all hand-typed
+ * against `ums-core`'s real Documents module source, extending the ADMIN-17 ad hoc client above
+ * rather than rewriting it.
+ *
+ * FLAGGED GAPS/ASSUMPTIONS:
+ * - `BulkGenerationJobDto.status`'s exact literal values are this app's own best-effort guess
+ *   (`Queued|Processing|Completed|CompletedWithErrors|Failed`), following the same shape as
+ *   Student's own confirmed real `StudentBulkImportJobStatus` machine, not independently read off
+ *   a C# enum for this specific job type.
+ * - `GET /jobs/{id}` only exposes aggregate counters (`totalItems`/`completedCount`/
+ *   `deadLetteredCount`) -- there is no per-item detail endpoint, so a per-row failure reason is
+ *   never shown here, only the aggregate dead-letter count.
+ */
+export interface TemplateTranslationInput {
+  readonly Language: string;
+  readonly Title: string;
+  readonly LabelsJson?: string | null;
+}
+
+export interface CreateDocumentTemplateRequest {
+  readonly DocumentType: DocumentType | string;
+  readonly LayoutAssetKey?: string | null;
+  readonly Translations: readonly TemplateTranslationInput[];
+}
+
+export interface DocumentTemplateTranslationDto {
+  readonly language: string;
+  readonly title: string;
+  readonly labelsJson: string | null;
+}
+
+export interface DocumentTemplateDto {
+  readonly id: string;
+  readonly documentType: DocumentType | string;
+  readonly layoutAssetKey: string | null;
+  readonly version: number;
+  readonly translations: readonly DocumentTemplateTranslationDto[];
+  readonly createdAt: string;
+}
+
+export interface BulkGenerationItemInput {
+  readonly OwnerId: string;
+  readonly SourceReferenceId: string;
+  readonly Fields: Readonly<Record<string, string>>;
+}
+
+export interface CreateBulkGenerationRequest {
+  readonly DocumentType: DocumentType | string;
+  readonly Items: readonly BulkGenerationItemInput[];
+}
+
+/** ASSUMED `status` literal values -- see this file's own class doc. */
+export interface BulkGenerationJobDto {
+  readonly id: string;
+  readonly documentType: DocumentType | string;
+  readonly templateId: string;
+  readonly templateVersion: number;
+  readonly status:
+    'Queued' | 'Processing' | 'Completed' | 'CompletedWithErrors' | 'Failed' | string;
+  readonly totalItems: number;
+  readonly completedCount: number;
+  readonly deadLetteredCount: number;
+  readonly createdAt: string;
+  readonly completedAt: string | null;
+}
+
+/**
+ * Fully public/unauthenticated, rate-limited -- never carries an owner id or download link,
+ * confirmed real (tickets.md).
+ */
+export interface DigitalVerificationResultDto {
+  readonly digitalVerificationId: string;
+  readonly documentType: DocumentType | string;
+  readonly status: string;
+  readonly isValid: boolean;
+  readonly reason: string | null;
+  readonly issuedAt: string | null;
+  readonly readyAt: string | null;
+}
+
+export interface RevokeDocumentRequest {
+  readonly Reason: string;
 }

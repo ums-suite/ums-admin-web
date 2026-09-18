@@ -1,0 +1,158 @@
+<div class="content-events">
+  <h1>Events</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="content-events__error">{{ store.error() }}</p>
+  }
+  <p class="content-events__note">
+    No schedule/publish/archive/delete step exists for Events -- their own start/end window IS their
+    visibility window.
+  </p>
+
+  <section class="content-events__section">
+    <h2>Calendar</h2>
+    <div class="content-events__form">
+      <ums-form-field #fromDateField="umsFormField" label="From">
+        <ums-input
+          [id]="fromDateField.controlId()"
+          [value]="fromDate()"
+          (valueChange)="fromDate.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #toDateField="umsFormField" label="To">
+        <ums-input
+          [id]="toDateField.controlId()"
+          [value]="toDate()"
+          (valueChange)="toDate.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadEvents()">Load events</ums-button>
+    </div>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.events()"
+      [rowId]="rowId"
+      emptyMessage="No events loaded yet."
+      caption="Events"
+    />
+    @for (event of store.events(); track event.id) {
+      <ums-button variant="tertiary" (click)="loadForEdit(event.id)"
+        >Manage {{ event.title }}</ums-button
+      >
+    }
+  </section>
+
+  <section class="content-events__section" *appHasPermission="permissionKeys.content.eventWrite">
+    <h2>Create Event</h2>
+    <div class="content-events__form">
+      <ums-form-field #newTitleField="umsFormField" label="Title" [required]="true">
+        <ums-input
+          [id]="newTitleField.controlId()"
+          [value]="newTitle()"
+          (valueChange)="newTitle.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newBodyField="umsFormField" label="Body" [required]="true">
+        <ums-textarea
+          [id]="newBodyField.controlId()"
+          [value]="newBody()"
+          (valueChange)="newBody.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newStartAtField="umsFormField" label="Starts at (ISO)" [required]="true">
+        <ums-input
+          [id]="newStartAtField.controlId()"
+          [value]="newStartAt()"
+          (valueChange)="newStartAt.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newEndAtField="umsFormField" label="Ends at (ISO)" [required]="true">
+        <ums-input
+          [id]="newEndAtField.controlId()"
+          [value]="newEndAt()"
+          (valueChange)="newEndAt.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newAudienceField="umsFormField" label="Audience" [required]="true">
+        <ums-select
+          [id]="newAudienceField.controlId()"
+          [options]="audienceOptions"
+          [value]="newAudience()"
+          (valueChange)="newAudience.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #newTranslationLanguageField="umsFormField"
+        label="Optional inline translation language"
+      >
+        <ums-input
+          [id]="newTranslationLanguageField.controlId()"
+          [value]="newTranslationLanguage()"
+          (valueChange)="newTranslationLanguage.set($event)"
+        />
+      </ums-form-field>
+      @if (newTranslationLanguage()) {
+        <ums-form-field #newTranslationTitleField="umsFormField" label="Translated title">
+          <ums-input
+            [id]="newTranslationTitleField.controlId()"
+            [value]="newTranslationTitle()"
+            (valueChange)="newTranslationTitle.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field #newTranslationBodyField="umsFormField" label="Translated body">
+          <ums-textarea
+            [id]="newTranslationBodyField.controlId()"
+            [value]="newTranslationBody()"
+            (valueChange)="newTranslationBody.set($event)"
+          />
+        </ums-form-field>
+      }
+      <ums-button (click)="submitCreate()">Create event</ums-button>
+    </div>
+  </section>
+
+  @if (store.currentEvent(); as event) {
+    <section class="content-events__section" *appHasPermission="permissionKeys.content.eventWrite">
+      <h2>Manage: {{ event.title }}</h2>
+      @if (conflict()) {
+        <app-version-conflict-banner (reload)="reloadAfterConflict()" />
+      }
+      <div class="content-events__form">
+        <ums-form-field
+          #editTranslationLanguageField="umsFormField"
+          label="Language code"
+          [required]="true"
+        >
+          <ums-input
+            [id]="editTranslationLanguageField.controlId()"
+            [value]="editTranslationLanguage()"
+            (valueChange)="editTranslationLanguage.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field
+          #editTranslationTitleField="umsFormField"
+          label="Translated title"
+          [required]="true"
+        >
+          <ums-input
+            [id]="editTranslationTitleField.controlId()"
+            [value]="editTranslationTitle()"
+            (valueChange)="editTranslationTitle.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field
+          #editTranslationBodyField="umsFormField"
+          label="Translated body"
+          [required]="true"
+        >
+          <ums-textarea
+            [id]="editTranslationBodyField.controlId()"
+            [value]="editTranslationBody()"
+            (valueChange)="editTranslationBody.set($event)"
+          />
+        </ums-form-field>
+        <ums-button (click)="submitTranslation()">Add translation</ums-button>
+      </div>
+    </section>
+  }
+</div>

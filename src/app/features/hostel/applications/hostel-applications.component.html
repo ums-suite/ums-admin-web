@@ -1,0 +1,209 @@
+<div class="hostel-applications">
+  <h1>Hostel Applications</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="hostel-applications__error">{{ store.error() }}</p>
+  }
+
+  <section
+    class="hostel-applications__section"
+    *appHasPermission="permissionKeys.hostel.windowManage"
+  >
+    <h2>Application Windows</h2>
+    <ums-button variant="secondary" (click)="loadWindows()">Load windows</ums-button>
+    <ul>
+      @for (win of store.applicationWindows(); track win.id) {
+        <li>{{ win.id }} -- {{ win.name }} ({{ win.opensAt }} - {{ win.closesAt }})</li>
+      }
+    </ul>
+
+    <div class="hostel-applications__form">
+      <ums-form-field #windowNameField="umsFormField" label="Name" [required]="true">
+        <ums-input
+          [id]="windowNameField.controlId()"
+          [value]="newWindowName()"
+          (valueChange)="newWindowName.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #windowOpensField="umsFormField" label="Opens at (ISO)" [required]="true">
+        <ums-input
+          [id]="windowOpensField.controlId()"
+          [value]="newWindowOpensAt()"
+          (valueChange)="newWindowOpensAt.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #windowClosesField="umsFormField" label="Closes at (ISO)" [required]="true">
+        <ums-input
+          [id]="windowClosesField.controlId()"
+          [value]="newWindowClosesAt()"
+          (valueChange)="newWindowClosesAt.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateWindow()">Create window</ums-button>
+    </div>
+
+    <h3>Configure eligibility</h3>
+    <ums-form-field #configWindowIdField="umsFormField" label="Window id">
+      <ums-input
+        [id]="configWindowIdField.controlId()"
+        [value]="configWindowId()"
+        (valueChange)="configWindowId.set($event)"
+      />
+    </ums-form-field>
+    <div class="hostel-applications__form">
+      <ums-form-field
+        #programIdsField="umsFormField"
+        label="Eligible program ids (comma-separated)"
+      >
+        <ums-input
+          [id]="programIdsField.controlId()"
+          [value]="programIdsCsv()"
+          (valueChange)="programIdsCsv.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitEligiblePrograms()">Set programs</ums-button>
+    </div>
+    <div class="hostel-applications__form">
+      <ums-form-field #yearsField="umsFormField" label="Eligible years (comma-separated)">
+        <ums-input
+          [id]="yearsField.controlId()"
+          [value]="yearsCsv()"
+          (valueChange)="yearsCsv.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitEligibleYears()">Set years</ums-button>
+    </div>
+
+    <div class="hostel-applications__form">
+      <ums-form-field #ruleTypeField="umsFormField" label="Rule type">
+        <ums-select
+          [id]="ruleTypeField.controlId()"
+          [options]="ruleTypeOptions"
+          [value]="ruleTypeInput()"
+          (valueChange)="ruleTypeInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #ruleValueField="umsFormField" label="Value">
+        <ums-input
+          [id]="ruleValueField.controlId()"
+          [value]="ruleValueInput()"
+          (valueChange)="ruleValueInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #ruleDescriptionField="umsFormField" label="Description">
+        <ums-input
+          [id]="ruleDescriptionField.controlId()"
+          [value]="ruleDescriptionInput()"
+          (valueChange)="ruleDescriptionInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="addDraftRule()">Add rule</ums-button>
+    </div>
+    <ul>
+      @for (rule of draftRules(); track $index) {
+        <li>
+          {{ rule.ruleType }}: {{ rule.value }} ({{ rule.description }})
+          <ums-button variant="tertiary" (click)="removeDraftRule($index)">Remove</ums-button>
+        </li>
+      }
+    </ul>
+    <ums-button (click)="submitEligibilityRules()">Save eligibility rules</ums-button>
+  </section>
+
+  <section
+    class="hostel-applications__section"
+    *appHasPermission="permissionKeys.hostel.applicationReview"
+  >
+    <h2>Rank Applications</h2>
+    <ums-form-field #rankWindowIdField="umsFormField" label="Window id">
+      <ums-input
+        [id]="rankWindowIdField.controlId()"
+        [value]="rankWindowId()"
+        (valueChange)="rankWindowId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button (click)="submitRank()">Rank</ums-button>
+    @if (lastRankedCount(); as count) {
+      <p>{{ count }} application(s) ranked.</p>
+    }
+    @if (rankError()) {
+      <p role="alert" class="hostel-applications__error">{{ rankError() }}</p>
+    }
+  </section>
+
+  <section class="hostel-applications__section">
+    <h2>My Applications</h2>
+    <div class="hostel-applications__form">
+      <ums-form-field #submitWindowIdField="umsFormField" label="Window id">
+        <ums-input
+          [id]="submitWindowIdField.controlId()"
+          [value]="submitWindowId()"
+          (valueChange)="submitWindowId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitApplication()">Submit application</ums-button>
+    </div>
+    <ums-button variant="secondary" (click)="loadMyApplications()">Load my applications</ums-button>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.myApplications()"
+      [rowId]="rowId"
+      emptyMessage="No applications loaded yet."
+      caption="My applications"
+    />
+    @for (app of store.myApplications(); track app.id) {
+      @if (app.status === 'Submitted' || app.status === 'Draft') {
+        <ums-button variant="tertiary" (click)="withdraw(app.id)">Withdraw {{ app.id }}</ums-button>
+      }
+    }
+  </section>
+
+  <section
+    class="hostel-applications__section"
+    *appHasPermission="permissionKeys.hostel.applicationReview"
+  >
+    <h2>Review Queue</h2>
+    <p class="hostel-applications__note">
+      Both applicationWindowId and status are required server-side query params.
+    </p>
+    <div class="hostel-applications__form">
+      <ums-form-field #reviewWindowIdField="umsFormField" label="Window id" [required]="true">
+        <ums-input
+          [id]="reviewWindowIdField.controlId()"
+          [value]="reviewWindowId()"
+          (valueChange)="reviewWindowId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #reviewStatusField="umsFormField" label="Status" [required]="true">
+        <ums-input
+          [id]="reviewStatusField.controlId()"
+          [value]="reviewStatus()"
+          (valueChange)="reviewStatus.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #reviewReasonField="umsFormField" label="Reason (optional)">
+        <ums-input
+          [id]="reviewReasonField.controlId()"
+          [value]="reviewReason()"
+          (valueChange)="reviewReason.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadReviewQueue()">Load queue</ums-button>
+    </div>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.reviewQueue()"
+      [rowId]="rowId"
+      emptyMessage="No applications loaded yet."
+      caption="Review queue"
+    />
+    @for (app of store.reviewQueue(); track app.id) {
+      <div class="hostel-applications__review-row">
+        <span>{{ app.id }} ({{ app.status }})</span>
+        <ums-button variant="secondary" (click)="review(app.id, 'Approve')">Approve</ums-button>
+        <ums-button variant="secondary" (click)="review(app.id, 'Waitlist')">Waitlist</ums-button>
+        <ums-button variant="tertiary" (click)="review(app.id, 'Reject')">Reject</ums-button>
+      </div>
+    }
+  </section>
+</div>

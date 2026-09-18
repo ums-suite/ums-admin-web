@@ -1,0 +1,43 @@
+<div class="documents-verify">
+  <h1>Verify a Document</h1>
+  <p class="documents-verify__note">
+    Public, unauthenticated, rate-limited -- this never shows an owner id or download link, matching
+    what ums-core itself returns for this endpoint.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="documents-verify__error">{{ store.error() }}</p>
+  }
+
+  <div class="documents-verify__form">
+    <ums-form-field #verificationIdField="umsFormField" label="Verification id" [required]="true">
+      <ums-input
+        [id]="verificationIdField.controlId()"
+        [value]="verificationId()"
+        (valueChange)="verificationId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button (click)="verify()">Verify</ums-button>
+  </div>
+
+  @if (store.verificationResult(); as result) {
+    <dl class="documents-verify__result">
+      <dt>Document type</dt>
+      <dd>{{ result.documentType }}</dd>
+      <dt>Status</dt>
+      <dd>{{ result.status }}</dd>
+      <dt>Valid</dt>
+      <dd>
+        <ums-badge [variant]="result.isValid ? 'success' : 'danger'">{{
+          result.isValid ? 'Valid' : 'Invalid'
+        }}</ums-badge>
+      </dd>
+      @if (result.reason) {
+        <dt>Reason</dt>
+        <dd>{{ result.reason }}</dd>
+      }
+      <dt>Issued at</dt>
+      <dd>{{ result.issuedAt ?? 'Not yet issued' }}</dd>
+    </dl>
+  }
+</div>

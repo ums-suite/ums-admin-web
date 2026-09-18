@@ -105,15 +105,62 @@ export const PERMISSION_KEYS = {
     generate: 'document.document.generate',
     read: 'document.document.read',
     revoke: 'document.document.revoke',
+    // Confirmed real -- ADMIN-31 pass, Documents' own template/bulk-generation permission
+    // manifest, deliberately two-segment (unlike the three above) per tickets.md's own literal.
+    templateManage: 'document.template.manage',
+    generateBulk: 'document.generate.bulk',
   },
+  // Confirmed real -- `ReportingPermissions.cs` (ADMIN-32/33 pass): one `reporting.dashboard.
+  // <domain>` permission per the 9 real dashboard domains (`DashboardEndpoints.cs`), plus
+  // `reporting.regulatory.manage` (definitions CRUD) / `reporting.regulatory.run` (submit+poll a
+  // RegulatoryReportRun).
   reporting: {
-    // These four match ums-core's real, confirmed per-domain permission-gating pattern
-    // ("each its own permission (reporting.dashboard.<domain>)") for the domains
-    // requirement-spec.md §7 names by example (enrollment funnel, collection rate, occupancy,
-    // GPA distribution) -- the exact literal strings are still this app's own assumed guess.
     dashboardAdmission: 'reporting.dashboard.admission',
     dashboardFinancial: 'reporting.dashboard.financial',
     dashboardHostel: 'reporting.dashboard.hostel',
     dashboardAcademic: 'reporting.dashboard.academic',
+    dashboardFaculty: 'reporting.dashboard.faculty',
+    dashboardLibrary: 'reporting.dashboard.library',
+    dashboardContent: 'reporting.dashboard.content',
+    dashboardAlumni: 'reporting.dashboard.alumni',
+    dashboardCareer: 'reporting.dashboard.career',
+    regulatoryManage: 'reporting.regulatory.manage',
+    regulatoryRun: 'reporting.regulatory.run',
+  },
+  // Confirmed real -- `Audit/Application/Permissions` (ADMIN-34 pass).
+  audit: {
+    entryRead: 'audit.entry.read',
+    exportGenerate: 'audit.export.generate',
+  },
+  // ASSUMED beyond this point again (Hostel/Library/Content/Notifications) -- literal strings
+  // given directly by this batch's own ticket brief, following the confirmed
+  // `<module>.<resource>.<action>` format but not independently re-verified against the real
+  // permission catalog in this pass.
+  hostel: {
+    inventoryManage: 'hostel.inventory.manage',
+    windowManage: 'hostel.window.manage',
+    applicationReview: 'hostel.application.review',
+    allocationCheckin: 'hostel.allocation.checkin',
+    allocationCheckout: 'hostel.allocation.checkout',
+    complaintResolve: 'hostel.complaint.resolve',
+  },
+  library: {
+    catalogManage: 'library.catalog.manage',
+    loanIssue: 'library.loan.issue',
+    loanManage: 'library.loan.manage',
+    fineWaive: 'library.fine.waive',
+    copyWriteoff: 'library.copy.writeoff',
+    reviewView: 'library.review.view',
+  },
+  content: {
+    noticeWrite: 'content.notice.write',
+    noticePublish: 'content.notice.publish',
+    noticeRead: 'content.notice.read',
+    eventWrite: 'content.event.write',
+    bannerWrite: 'content.banner.write',
+    bannerPublish: 'content.banner.publish',
+  },
+  notifications: {
+    templateManage: 'notifications.template.manage',
   },
 } as const;

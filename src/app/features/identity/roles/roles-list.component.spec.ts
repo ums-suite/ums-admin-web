@@ -21,18 +21,16 @@ describe('RolesListComponent', () => {
   function createAndLoad() {
     const fixture = TestBed.createComponent(RolesListComponent);
     fixture.detectChanges();
-    httpMock
-      .expectOne(`${apiBaseUrl}/api/v1/identity/roles`)
-      .flush([
-        {
-          id: 'r1',
-          name: 'Registrar',
-          description: 'Handles admissions',
-          permissions: ['admission.campaign.manage'],
-          requiresMfa: true,
-          createdAt: '2026-01-01T00:00:00Z',
-        },
-      ]);
+    httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/roles`).flush([
+      {
+        id: 'r1',
+        name: 'Registrar',
+        description: 'Handles admissions',
+        permissions: ['admission.campaign.manage'],
+        requiresMfa: true,
+        createdAt: '2026-01-01T00:00:00Z',
+      },
+    ]);
     httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/permissions`).flush([
       {
         key: 'admission.campaign.manage',
@@ -110,6 +108,18 @@ describe('RolesListComponent', () => {
     httpMock.expectOne(`${apiBaseUrl}/api/v1/identity/roles`).flush([]);
 
     expect(fixture.componentInstance['createModalOpen']()).toBeFalse();
+  });
+
+  it('applyPreset pre-fills the create-role form from a hardcoded preset without creating anything', () => {
+    const fixture = createAndLoad();
+    fixture.componentInstance['openCreateModal']();
+    fixture.componentInstance['applyPreset']('Accountant starter bundle');
+
+    expect(fixture.componentInstance['newRoleDescription']()).toContain('Fee structures');
+    expect(
+      fixture.componentInstance['selectedPermissions']().has('finance.feestructure.manage'),
+    ).toBeTrue();
+    httpMock.expectNone(`${apiBaseUrl}/api/v1/identity/roles`);
   });
 
   it("edits a role's permissions, pre-populated from the current role", () => {

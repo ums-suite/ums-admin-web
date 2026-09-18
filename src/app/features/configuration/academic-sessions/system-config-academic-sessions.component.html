@@ -1,0 +1,94 @@
+<div class="system-config-academic-sessions">
+  <h1>Academic Sessions</h1>
+  <p class="system-config-academic-sessions__note">
+    Scoped down deliberately: ums-core exposes create + get-by-id only for Academic Session -- there
+    is no list, update, or delete endpoint, so this screen never pretends otherwise.
+  </p>
+
+  <section
+    class="system-config-academic-sessions__section"
+    *appHasPermission="permissionKeys.academic.academicSessionManage"
+  >
+    <h2>Define a New Session</h2>
+    @if (createError()) {
+      <p role="alert" class="system-config-academic-sessions__error">{{ createError() }}</p>
+    }
+    <ums-form-field #codeField="umsFormField" label="Session code" [required]="true">
+      <ums-input [id]="codeField.controlId()" [value]="code()" (valueChange)="code.set($event)" />
+    </ums-form-field>
+
+    <h3>Semesters</h3>
+    <div class="system-config-academic-sessions__form">
+      <ums-form-field #semesterNameField="umsFormField" label="Name">
+        <ums-input
+          [id]="semesterNameField.controlId()"
+          [value]="semesterName()"
+          (valueChange)="semesterName.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #registrationStartField="umsFormField" label="Registration start (ISO)">
+        <ums-input
+          [id]="registrationStartField.controlId()"
+          [value]="registrationStart()"
+          (valueChange)="registrationStart.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #registrationEndField="umsFormField" label="Registration end (ISO)">
+        <ums-input
+          [id]="registrationEndField.controlId()"
+          [value]="registrationEnd()"
+          (valueChange)="registrationEnd.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #dropStartField="umsFormField" label="Drop start (ISO)">
+        <ums-input
+          [id]="dropStartField.controlId()"
+          [value]="dropStart()"
+          (valueChange)="dropStart.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #dropEndField="umsFormField" label="Drop end (ISO)">
+        <ums-input
+          [id]="dropEndField.controlId()"
+          [value]="dropEnd()"
+          (valueChange)="dropEnd.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="addSemester()">Add semester</ums-button>
+    </div>
+    <ul>
+      @for (semester of draftSemesters(); track $index) {
+        <li>
+          {{ semester.name }} ({{ semester.registrationStart }} - {{ semester.registrationEnd }})
+          <ums-button variant="tertiary" (click)="removeSemester($index)">Remove</ums-button>
+        </li>
+      }
+    </ul>
+
+    <ums-button (click)="submitCreate()">Create session</ums-button>
+
+    @if (createdSession(); as session) {
+      <p>Created session {{ session.id }} ({{ session.code }}).</p>
+    }
+  </section>
+
+  <section class="system-config-academic-sessions__section">
+    <h2>Look Up by Id</h2>
+    @if (lookupError()) {
+      <p role="alert" class="system-config-academic-sessions__error">{{ lookupError() }}</p>
+    }
+    <div class="system-config-academic-sessions__form">
+      <ums-form-field #lookupIdField="umsFormField" label="Session id">
+        <ums-input
+          [id]="lookupIdField.controlId()"
+          [value]="lookupId()"
+          (valueChange)="lookupId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="lookup()">Look up</ums-button>
+    </div>
+    @if (lookedUpSession(); as session) {
+      <p>{{ session.id }} -- {{ session.code }} ({{ session.semesters.length }} semester(s))</p>
+    }
+  </section>
+</div>

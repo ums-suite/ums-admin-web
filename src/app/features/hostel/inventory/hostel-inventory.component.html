@@ -1,0 +1,163 @@
+<div class="hostel-inventory">
+  <h1>Hostel Inventory</h1>
+  <p class="hostel-inventory__note">
+    ums-core exposes no bed-map/occupancy endpoint anywhere in this module -- "Occupancy" is always
+    shown as Unknown rather than fabricated. Re-fetching a room's own bed list is the only honest
+    refresh available after a conflict; there is no floor/section/building-wide refresh.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="hostel-inventory__error">{{ store.error() }}</p>
+  }
+
+  <section class="hostel-inventory__section">
+    <h2>Hostels</h2>
+    <ums-button variant="secondary" (click)="loadHostels()">Load hostels</ums-button>
+    <ums-data-table
+      [columns]="hostelColumns"
+      [rows]="store.hostels()"
+      [rowId]="rowId"
+      emptyMessage="No hostels loaded yet."
+      caption="Hostels"
+    />
+    <div class="hostel-inventory__form" *appHasPermission="permissionKeys.hostel.inventoryManage">
+      <ums-form-field #hostelNameField="umsFormField" label="Name" [required]="true">
+        <ums-input
+          [id]="hostelNameField.controlId()"
+          [value]="newHostelName()"
+          (valueChange)="newHostelName.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #hostelTypeField="umsFormField" label="Type" [required]="true">
+        <ums-select
+          [id]="hostelTypeField.controlId()"
+          [options]="hostelTypeOptions"
+          [value]="newHostelType()"
+          (valueChange)="newHostelType.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateHostel()">Create hostel</ums-button>
+    </div>
+  </section>
+
+  <section class="hostel-inventory__section">
+    <h2>Buildings</h2>
+    <ums-form-field #hostelIdField="umsFormField" label="Hostel id">
+      <ums-input
+        [id]="hostelIdField.controlId()"
+        [value]="selectedHostelId()"
+        (valueChange)="selectedHostelId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadBuildings()">Load buildings</ums-button>
+    <ums-data-table
+      [columns]="buildingColumns"
+      [rows]="store.buildings()"
+      [rowId]="rowId"
+      emptyMessage="No buildings loaded yet."
+      caption="Buildings"
+    />
+    <div class="hostel-inventory__form" *appHasPermission="permissionKeys.hostel.inventoryManage">
+      <ums-form-field #buildingNameField="umsFormField" label="Name" [required]="true">
+        <ums-input
+          [id]="buildingNameField.controlId()"
+          [value]="newBuildingName()"
+          (valueChange)="newBuildingName.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateBuilding()">Create building</ums-button>
+    </div>
+  </section>
+
+  <section class="hostel-inventory__section">
+    <h2>Rooms</h2>
+    <ums-form-field #buildingIdField="umsFormField" label="Building id">
+      <ums-input
+        [id]="buildingIdField.controlId()"
+        [value]="selectedBuildingId()"
+        (valueChange)="selectedBuildingId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadRooms()">Load rooms</ums-button>
+    <ums-data-table
+      [columns]="roomColumns"
+      [rows]="store.rooms()"
+      [rowId]="rowId"
+      emptyMessage="No rooms loaded yet."
+      caption="Rooms"
+    />
+    <div class="hostel-inventory__form" *appHasPermission="permissionKeys.hostel.inventoryManage">
+      <ums-form-field #roomNumberField="umsFormField" label="Room number" [required]="true">
+        <ums-input
+          [id]="roomNumberField.controlId()"
+          [value]="newRoomNumber()"
+          (valueChange)="newRoomNumber.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #roomTypeField="umsFormField" label="Type" [required]="true">
+        <ums-select
+          [id]="roomTypeField.controlId()"
+          [options]="roomTypeOptions"
+          [value]="newRoomType()"
+          (valueChange)="newRoomType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #roomCapacityField="umsFormField" label="Capacity" [required]="true">
+        <ums-input
+          type="number"
+          [id]="roomCapacityField.controlId()"
+          [value]="newRoomCapacity()"
+          (valueChange)="newRoomCapacity.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateRoom()">Create room</ums-button>
+
+      <ums-form-field #capacityRoomIdField="umsFormField" label="Room id to re-size">
+        <ums-input
+          [id]="capacityRoomIdField.controlId()"
+          [value]="capacityRoomId()"
+          (valueChange)="capacityRoomId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #capacityValueField="umsFormField" label="New capacity">
+        <ums-input
+          type="number"
+          [id]="capacityValueField.controlId()"
+          [value]="capacityValue()"
+          (valueChange)="capacityValue.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCapacityUpdate()">Update capacity</ums-button>
+    </div>
+  </section>
+
+  <section class="hostel-inventory__section">
+    <h2>Beds / Bed Map</h2>
+    <ums-form-field #roomIdField="umsFormField" label="Room id">
+      <ums-input
+        [id]="roomIdField.controlId()"
+        [value]="selectedRoomId()"
+        (valueChange)="selectedRoomId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadBeds()">Load beds</ums-button>
+    <ums-button variant="secondary" (click)="refreshBeds()">Refresh (post-conflict)</ums-button>
+    <ums-data-table
+      [columns]="bedColumns"
+      [rows]="currentBeds()"
+      [rowId]="rowId"
+      emptyMessage="No beds loaded yet."
+      caption="Beds"
+    />
+    <div class="hostel-inventory__form" *appHasPermission="permissionKeys.hostel.inventoryManage">
+      <ums-form-field #bedLabelField="umsFormField" label="Bed label" [required]="true">
+        <ums-input
+          [id]="bedLabelField.controlId()"
+          [value]="newBedLabel()"
+          (valueChange)="newBedLabel.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateBed()">Add bed</ums-button>
+    </div>
+  </section>
+</div>
