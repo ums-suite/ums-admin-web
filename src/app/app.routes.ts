@@ -304,7 +304,43 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'hostel', loadComponent: placeholder, data: { label: 'Hostel' } },
+      {
+        path: 'hostel',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'inventory' },
+          {
+            path: 'inventory',
+            canActivate: [permissionGuard(PERMISSION_KEYS.hostel.inventoryManage)],
+            loadComponent: () =>
+              import('./features/hostel/inventory/hostel-inventory.component').then(
+                (m) => m.HostelInventoryComponent,
+              ),
+            data: { label: 'Hostel -- Inventory' },
+          },
+          {
+            path: 'applications',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.hostel.windowManage,
+                PERMISSION_KEYS.hostel.applicationReview,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/hostel/applications/hostel-applications.component').then(
+                (m) => m.HostelApplicationsComponent,
+              ),
+            data: { label: 'Hostel -- Applications' },
+          },
+          {
+            path: 'allocations',
+            loadComponent: () =>
+              import('./features/hostel/allocations/hostel-allocations.component').then(
+                (m) => m.HostelAllocationsComponent,
+              ),
+            data: { label: 'Hostel -- Allocations & Complaints' },
+          },
+        ],
+      },
       { path: 'library', loadComponent: placeholder, data: { label: 'Library' } },
       { path: 'content', loadComponent: placeholder, data: { label: 'Content' } },
       { path: 'documents', loadComponent: placeholder, data: { label: 'Documents' } },
