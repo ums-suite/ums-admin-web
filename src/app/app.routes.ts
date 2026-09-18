@@ -363,7 +363,37 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'content', loadComponent: placeholder, data: { label: 'Content' } },
+      {
+        path: 'content',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'notices' },
+          {
+            path: 'notices',
+            canActivate: [permissionGuard(PERMISSION_KEYS.content.noticeRead)],
+            loadComponent: () =>
+              import('./features/content/notices/content-notices.component').then(
+                (m) => m.ContentNoticesComponent,
+              ),
+            data: { label: 'Content -- Notices' },
+          },
+          {
+            path: 'events',
+            loadComponent: () =>
+              import('./features/content/events/content-events.component').then(
+                (m) => m.ContentEventsComponent,
+              ),
+            data: { label: 'Content -- Events' },
+          },
+          {
+            path: 'banners',
+            loadComponent: () =>
+              import('./features/content/banners/content-banners.component').then(
+                (m) => m.ContentBannersComponent,
+              ),
+            data: { label: 'Content -- Banners' },
+          },
+        ],
+      },
       { path: 'documents', loadComponent: placeholder, data: { label: 'Documents' } },
       { path: 'reporting', loadComponent: placeholder, data: { label: 'Reporting' } },
       { path: 'audit', loadComponent: placeholder, data: { label: 'Audit Log' } },

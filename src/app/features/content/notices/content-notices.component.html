@@ -1,0 +1,115 @@
+<div class="content-notices">
+  <h1>Notices</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="content-notices__error">{{ store.error() }}</p>
+  }
+
+  <section class="content-notices__section" *appHasPermission="permissionKeys.content.noticeRead">
+    <h2>Feed</h2>
+    <div class="content-notices__form">
+      <ums-form-field #feedAudienceField="umsFormField" label="Audience filter">
+        <ums-input
+          [id]="feedAudienceField.controlId()"
+          [value]="feedAudience()"
+          (valueChange)="feedAudience.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="loadFeed()">Load feed</ums-button>
+    </div>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.feed()"
+      [rowId]="rowId"
+      emptyMessage="No notices loaded yet."
+      caption="Notice feed"
+    />
+    @for (notice of store.feed(); track notice.id) {
+      <ums-button variant="tertiary" (click)="loadForEdit(notice.id)"
+        >Manage {{ notice.title }}</ums-button
+      >
+    }
+  </section>
+
+  <section class="content-notices__section" *appHasPermission="permissionKeys.content.noticeWrite">
+    <h2>Create Notice</h2>
+    <div class="content-notices__form">
+      <ums-form-field #newTitleField="umsFormField" label="Title" [required]="true">
+        <ums-input
+          [id]="newTitleField.controlId()"
+          [value]="newTitle()"
+          (valueChange)="newTitle.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newBodyField="umsFormField" label="Body" [required]="true">
+        <ums-textarea
+          [id]="newBodyField.controlId()"
+          [value]="newBody()"
+          (valueChange)="newBody.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newAudienceField="umsFormField" label="Audience" [required]="true">
+        <ums-select
+          [id]="newAudienceField.controlId()"
+          [options]="audienceOptions"
+          [value]="newAudience()"
+          (valueChange)="newAudience.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreate()">Create notice</ums-button>
+    </div>
+  </section>
+
+  @if (store.currentNotice(); as notice) {
+    <section class="content-notices__section">
+      <h2>Manage: {{ notice.title }} ({{ notice.status }})</h2>
+
+      @if (conflict()) {
+        <app-version-conflict-banner (reload)="reloadAfterConflict()" />
+      }
+
+      <div class="content-notices__form" *appHasPermission="permissionKeys.content.noticeWrite">
+        <ums-form-field
+          #translationLanguageField="umsFormField"
+          label="Language code"
+          [required]="true"
+        >
+          <ums-input
+            [id]="translationLanguageField.controlId()"
+            [value]="translationLanguageCode()"
+            (valueChange)="translationLanguageCode.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field
+          #translationTitleField="umsFormField"
+          label="Translated title"
+          [required]="true"
+        >
+          <ums-input
+            [id]="translationTitleField.controlId()"
+            [value]="translationTitle()"
+            (valueChange)="translationTitle.set($event)"
+          />
+        </ums-form-field>
+        <ums-form-field
+          #translationBodyField="umsFormField"
+          label="Translated body"
+          [required]="true"
+        >
+          <ums-textarea
+            [id]="translationBodyField.controlId()"
+            [value]="translationBody()"
+            (valueChange)="translationBody.set($event)"
+          />
+        </ums-form-field>
+        <ums-button (click)="submitTranslation()">Add translation</ums-button>
+      </div>
+
+      <div class="content-notices__form" *appHasPermission="permissionKeys.content.noticePublish">
+        <ums-button variant="secondary" (click)="transition('schedule')">Schedule</ums-button>
+        <ums-button (click)="transition('publish')">Publish</ums-button>
+        <ums-button variant="tertiary" (click)="transition('archive')">Archive</ums-button>
+      </div>
+    </section>
+  }
+</div>
