@@ -12,12 +12,15 @@ import {
   UmsFormFieldComponent,
   UmsInputComponent,
   UmsModalComponent,
+  UmsSelectComponent,
   UmsTextareaComponent,
+  type SelectOption,
 } from '@ums/design-system';
 import { HasPermissionDirective } from '../../../core/auth/permissions/has-permission.directive';
 import { PERMISSION_KEYS } from '../../../core/auth/permissions/permission-keys';
 import type { PermissionCatalogEntryDto, RoleDto } from '../identity.types';
 import { IdentityRolesStore } from '../state/identity-roles.store';
+import { PERMISSION_BUNDLE_PRESETS } from './permission-bundle-presets';
 
 interface PermissionGroup {
   readonly owningModule: string;
@@ -55,6 +58,7 @@ interface PermissionGroup {
     UmsModalComponent,
     UmsFormFieldComponent,
     UmsInputComponent,
+    UmsSelectComponent,
     UmsTextareaComponent,
     HasPermissionDirective,
   ],
@@ -72,6 +76,19 @@ export class RolesListComponent implements OnInit {
   protected readonly newRoleName = signal('');
   protected readonly newRoleDescription = signal('');
   protected readonly selectedPermissions = signal<ReadonlySet<string>>(new Set());
+
+  /**
+   * ADMIN-35: permission-bundle presets are a hardcoded client-side list (no such concept exists
+   * server-side, see `permission-bundle-presets.ts`'s own doc) that only ever pre-fill this
+   * EXISTING create-role form -- picking one never itself creates anything; the resulting Role
+   * still goes through the ordinary `submitCreateRole` -> `createRole` call below.
+   */
+  protected readonly presets = PERMISSION_BUNDLE_PRESETS;
+  protected readonly presetOptions: readonly SelectOption[] = [
+    { value: '', label: 'Start from scratch' },
+    ...PERMISSION_BUNDLE_PRESETS.map((preset) => ({ value: preset.name, label: preset.name })),
+  ];
+  protected readonly selectedPresetName = signal('');
 
   protected readonly permissionGroups = computed<readonly PermissionGroup[]>(() => {
     const byModule = new Map<string, PermissionCatalogEntryDto[]>();
@@ -95,7 +112,17 @@ export class RolesListComponent implements OnInit {
     this.newRoleName.set('');
     this.newRoleDescription.set('');
     this.selectedPermissions.set(new Set());
+    this.selectedPresetName.set('');
     this.createModalOpen.set(true);
+  }
+
+  /** Pre-fills the create-role form from a hardcoded preset -- never creates anything itself. */
+  protected applyPreset(presetName: string): void {
+    this.selectedPresetName.set(presetName);
+    const preset = this.presets.find((p) => p.name === presetName);
+    if (!preset) return;
+    this.newRoleDescription.set(preset.description);
+    this.selectedPermissions.set(new Set(preset.permissions));
   }
 
   protected openEditModal(role: RoleDto): void {

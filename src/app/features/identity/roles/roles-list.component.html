@@ -56,6 +56,18 @@
 </div>
 
 <ums-modal [open]="createModalOpen()" title="New Role" (closed)="createModalOpen.set(false)">
+  <p class="roles-list__note">
+    Permission-bundle presets are a hardcoded client-side convenience -- no such concept exists
+    server-side (a Role IS the permission bundle). Picking one only pre-fills this form below.
+  </p>
+  <ums-form-field #presetField="umsFormField" label="Start from a preset">
+    <ums-select
+      [id]="presetField.controlId()"
+      [options]="presetOptions"
+      [value]="selectedPresetName()"
+      (valueChange)="applyPreset($event)"
+    />
+  </ums-form-field>
   <ums-form-field #nameField="umsFormField" label="Name" [required]="true">
     <ums-input
       [id]="nameField.controlId()"

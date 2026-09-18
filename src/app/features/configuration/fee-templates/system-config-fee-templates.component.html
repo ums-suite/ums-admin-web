@@ -1,0 +1,94 @@
+<div class="system-config-fee-templates">
+  <h1>Fee Structure Templates</h1>
+  <p class="system-config-fee-templates__note">
+    This concept does not exist server-side -- FeeStructure has no template/family wrapper. A
+    "template" here is a same-session, client-side-only convenience: nothing below is persisted
+    until you Apply it, which loops the existing FinanceApi.createFeeStructure call once per target
+    id. No new backend entity is invented.
+  </p>
+
+  <section
+    class="system-config-fee-templates__section"
+    *appHasPermission="permissionKeys.finance.feeStructureManage"
+  >
+    <h2>Save a Draft Template</h2>
+    <div class="system-config-fee-templates__form">
+      <ums-form-field #labelField="umsFormField" label="Template label" [required]="true">
+        <ums-input
+          [id]="labelField.controlId()"
+          [value]="draftLabel()"
+          (valueChange)="draftLabel.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #feeTypeField="umsFormField" label="Fee type" [required]="true">
+        <ums-input
+          [id]="feeTypeField.controlId()"
+          [value]="draftFeeType()"
+          (valueChange)="draftFeeType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #applicabilityField="umsFormField"
+        label="Applicability type"
+        [required]="true"
+      >
+        <ums-select
+          [id]="applicabilityField.controlId()"
+          [options]="applicabilityOptions"
+          [value]="draftApplicabilityType()"
+          (valueChange)="draftApplicabilityType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #amountField="umsFormField" label="Amount" [required]="true">
+        <ums-input
+          type="number"
+          [id]="amountField.controlId()"
+          [value]="draftAmount()"
+          (valueChange)="draftAmount.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #currencyField="umsFormField" label="Currency">
+        <ums-input
+          [id]="currencyField.controlId()"
+          [value]="draftCurrency()"
+          (valueChange)="draftCurrency.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="saveTemplate()">Save template</ums-button>
+    </div>
+  </section>
+
+  <section class="system-config-fee-templates__section">
+    <h2>Saved Templates (this session only)</h2>
+    @for (template of templates(); track template.label) {
+      <div class="system-config-fee-templates__template">
+        <p>
+          <strong>{{ template.label }}</strong> -- {{ template.draft.feeType }},
+          {{ template.draft.applicabilityType }}, {{ template.draft.amount }}
+          {{ template.draft.currency }}
+        </p>
+        <div
+          class="system-config-fee-templates__form"
+          *appHasPermission="permissionKeys.finance.feeStructureManage"
+        >
+          <ums-form-field #applyIdsField="umsFormField" label="Target ids (comma-separated)">
+            <ums-input
+              [id]="applyIdsField.controlId()"
+              [value]="applyTargetIdsByLabel()[template.label] ?? ''"
+              (valueChange)="setApplyTargets(template.label, $event)"
+            />
+          </ums-form-field>
+          <ums-button (click)="applyTemplate(template)">Apply</ums-button>
+          <ums-button variant="tertiary" (click)="removeTemplate(template.label)"
+            >Remove</ums-button
+          >
+        </div>
+        @if (applyResultsByLabel()[template.label]; as result) {
+          <p>{{ result }}</p>
+        }
+      </div>
+    } @empty {
+      <p>No templates saved yet.</p>
+    }
+  </section>
+</div>

@@ -1,0 +1,108 @@
+<div class="system-config-notification-templates">
+  <h1>Notification Templates</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="system-config-notification-templates__error">{{ store.error() }}</p>
+  }
+
+  <section class="system-config-notification-templates__section">
+    <h2>Templates</h2>
+    <ums-button variant="secondary" (click)="loadTemplates()">Load templates</ums-button>
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.templates()"
+      [rowId]="rowId"
+      emptyMessage="No templates loaded yet."
+      caption="Notification templates"
+    />
+    @for (template of store.templates(); track template.id) {
+      <ums-button
+        *appHasPermission="permissionKeys.notifications.templateManage"
+        variant="tertiary"
+        (click)="editTranslationFor(template)"
+        >Edit translation: {{ template.eventType }} / {{ template.channel }}</ums-button
+      >
+    }
+  </section>
+
+  <section
+    class="system-config-notification-templates__section"
+    *appHasPermission="permissionKeys.notifications.templateManage"
+  >
+    <h2>Get or Create (idempotent by EventType + Channel)</h2>
+    <div class="system-config-notification-templates__form">
+      <ums-form-field #newEventTypeField="umsFormField" label="Event type" [required]="true">
+        <ums-input
+          [id]="newEventTypeField.controlId()"
+          [value]="newEventType()"
+          (valueChange)="newEventType.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newChannelField="umsFormField" label="Channel" [required]="true">
+        <ums-select
+          [id]="newChannelField.controlId()"
+          [options]="channelOptions"
+          [value]="newChannel()"
+          (valueChange)="newChannel.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitGetOrCreate()">Get or create</ums-button>
+    </div>
+  </section>
+
+  @if (editTemplateId()) {
+    <section
+      class="system-config-notification-templates__section"
+      *appHasPermission="permissionKeys.notifications.templateManage"
+    >
+      <h2>Upsert Translation ({{ currentEditChannel() }})</h2>
+      @if (editValidationError()) {
+        <p role="alert" class="system-config-notification-templates__error">
+          {{ editValidationError() }}
+        </p>
+      }
+      <div class="system-config-notification-templates__form">
+        <ums-form-field #editLanguageField="umsFormField" label="Language code" [required]="true">
+          <ums-input
+            [id]="editLanguageField.controlId()"
+            [value]="editLanguageCode()"
+            (valueChange)="editLanguageCode.set($event)"
+          />
+        </ums-form-field>
+        @if (currentEditChannel() === 'Email') {
+          <ums-form-field #editSubjectField="umsFormField" label="Subject" [required]="true">
+            <ums-input
+              [id]="editSubjectField.controlId()"
+              [value]="editSubject()"
+              (valueChange)="editSubject.set($event)"
+            />
+          </ums-form-field>
+        }
+        <ums-form-field #editBodyField="umsFormField" label="Body" [required]="true">
+          <ums-textarea
+            [id]="editBodyField.controlId()"
+            [value]="editBody()"
+            (valueChange)="editBody.set($event)"
+          />
+        </ums-form-field>
+        @if (currentEditChannel() === 'Push') {
+          <ums-form-field #editPushTitleField="umsFormField" label="Push title" [required]="true">
+            <ums-input
+              [id]="editPushTitleField.controlId()"
+              [value]="editPushTitle()"
+              (valueChange)="editPushTitle.set($event)"
+            />
+          </ums-form-field>
+        }
+        <ums-form-field #editDeepLinkField="umsFormField" label="Deep link">
+          <ums-input
+            [id]="editDeepLinkField.controlId()"
+            [value]="editDeepLink()"
+            (valueChange)="editDeepLink.set($event)"
+          />
+        </ums-form-field>
+        <ums-button (click)="submitTranslation()">Save translation</ums-button>
+      </div>
+    </section>
+  }
+</div>

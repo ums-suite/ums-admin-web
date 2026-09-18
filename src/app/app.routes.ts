@@ -471,7 +471,36 @@ export const routes: Routes = [
           ),
         data: { label: 'Audit Log' },
       },
-      { path: 'configuration', loadComponent: placeholder, data: { label: 'Configuration' } },
+      {
+        path: 'configuration',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'academic-sessions' },
+          {
+            path: 'academic-sessions',
+            loadComponent: () =>
+              import('./features/configuration/academic-sessions/system-config-academic-sessions.component').then(
+                (m) => m.SystemConfigAcademicSessionsComponent,
+              ),
+            data: { label: 'Configuration -- Academic Sessions' },
+          },
+          {
+            path: 'fee-templates',
+            loadComponent: () =>
+              import('./features/configuration/fee-templates/system-config-fee-templates.component').then(
+                (m) => m.SystemConfigFeeTemplatesComponent,
+              ),
+            data: { label: 'Configuration -- Fee Structure Templates' },
+          },
+          {
+            path: 'notification-templates',
+            loadComponent: () =>
+              import('./features/configuration/notification-templates/system-config-notification-templates.component').then(
+                (m) => m.SystemConfigNotificationTemplatesComponent,
+              ),
+            data: { label: 'Configuration -- Notification Templates' },
+          },
+        ],
+      },
       { path: '**', loadComponent: placeholder, data: { label: 'This page' } },
     ],
   },
