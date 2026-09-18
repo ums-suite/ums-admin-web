@@ -1,0 +1,111 @@
+<div class="audit-explorer" *appHasPermission="permissionKeys.audit.entryRead">
+  <h1>Audit Log Explorer</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="audit-explorer__error">{{ store.error() }}</p>
+  }
+
+  <section class="audit-explorer__filters">
+    <ums-form-field #entityTypeField="umsFormField" label="Entity type">
+      <ums-input
+        [id]="entityTypeField.controlId()"
+        [value]="entityType()"
+        (valueChange)="entityType.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #entityIdField="umsFormField" label="Entity id">
+      <ums-input
+        [id]="entityIdField.controlId()"
+        [value]="entityId()"
+        (valueChange)="entityId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #actorIdField="umsFormField" label="Actor id">
+      <ums-input
+        [id]="actorIdField.controlId()"
+        [value]="actorId()"
+        (valueChange)="actorId.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #actionField="umsFormField" label="Action">
+      <ums-input
+        [id]="actionField.controlId()"
+        [value]="action()"
+        (valueChange)="action.set($event)"
+      />
+    </ums-form-field>
+    <ums-form-field #applicationField="umsFormField" label="Application">
+      <ums-input
+        [id]="applicationField.controlId()"
+        [value]="application()"
+        (valueChange)="application.set($event)"
+      />
+    </ums-form-field>
+    <ums-date-range-picker
+      label="Date range"
+      [start]="dateFrom()"
+      [end]="dateTo()"
+      (rangeChange)="onRangeChange($event)"
+    />
+    <ums-button (click)="runQuery()">Search</ums-button>
+  </section>
+
+  @if (isWideRange() && !wideRangeAcknowledged()) {
+    <p role="alert" class="audit-explorer__warning">
+      This date range spans more than 90 days -- consider narrowing it. Click Search again to run it
+      anyway.
+    </p>
+  }
+
+  <section class="audit-explorer__results">
+    <div class="audit-explorer__toolbar">
+      <app-freshness-label
+        [asOf]="store.lastQueriedAt()"
+        neverComputedMessage="No query run yet"
+        prefix="Results as of"
+      />
+      <ums-button variant="secondary" (click)="refresh()">Manual refresh</ums-button>
+    </div>
+
+    <ums-data-table
+      [columns]="columns"
+      [rows]="store.entries()"
+      [rowId]="rowId"
+      [itemSizePx]="40"
+      viewportHeight="28rem"
+      emptyMessage="No audit entries loaded yet."
+      caption="Audit log entries"
+    />
+
+    <div class="audit-explorer__pagination">
+      <ums-button variant="secondary" (click)="previousPage()">Previous</ums-button>
+      <span
+        >{{ skip() + 1 }}-{{ skip() + store.entries().length }} of {{ store.totalCount() }}</span
+      >
+      <ums-button variant="secondary" (click)="nextPage()">Next</ums-button>
+    </div>
+  </section>
+
+  <section class="audit-explorer__export" *appHasPermission="permissionKeys.audit.exportGenerate">
+    <h2>Export</h2>
+    <div class="audit-explorer__filters">
+      <ums-form-field #exportFormatField="umsFormField" label="Format">
+        <ums-select
+          [id]="exportFormatField.controlId()"
+          [options]="exportFormatOptions"
+          [value]="exportFormat()"
+          (valueChange)="exportFormat.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitExport()">Export current filters</ums-button>
+    </div>
+    @if (isExporting()) {
+      @if (exportSnapshot(); as snap) {
+        <p>Status: {{ snap.status }}</p>
+        @if (snap.result?.downloadUrl; as url) {
+          <a [href]="url" target="_blank" rel="noopener">Download export</a>
+        }
+      }
+    }
+  </section>
+</div>

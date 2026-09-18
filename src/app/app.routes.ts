@@ -462,7 +462,15 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'audit', loadComponent: placeholder, data: { label: 'Audit Log' } },
+      {
+        path: 'audit',
+        canActivate: [permissionGuard(PERMISSION_KEYS.audit.entryRead)],
+        loadComponent: () =>
+          import('./features/audit/explorer/audit-explorer.component').then(
+            (m) => m.AuditExplorerComponent,
+          ),
+        data: { label: 'Audit Log' },
+      },
       { path: 'configuration', loadComponent: placeholder, data: { label: 'Configuration' } },
       { path: '**', loadComponent: placeholder, data: { label: 'This page' } },
     ],
