@@ -1,0 +1,178 @@
+<div class="library-catalog">
+  <h1>Library Catalog</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="library-catalog__error">{{ store.error() }}</p>
+  }
+
+  <section class="library-catalog__section">
+    <h2>Books</h2>
+    <div class="library-catalog__form">
+      <ums-form-field #searchQueryField="umsFormField" label="Search title">
+        <ums-input
+          [id]="searchQueryField.controlId()"
+          [value]="searchQuery()"
+          (valueChange)="searchQuery.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #searchCategoryField="umsFormField" label="Category id">
+        <ums-input
+          [id]="searchCategoryField.controlId()"
+          [value]="searchCategoryId()"
+          (valueChange)="searchCategoryId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #searchAuthorField="umsFormField" label="Author id">
+        <ums-input
+          [id]="searchAuthorField.controlId()"
+          [value]="searchAuthorId()"
+          (valueChange)="searchAuthorId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="search()">Search</ums-button>
+    </div>
+    <ums-data-table
+      [columns]="bookColumns"
+      [rows]="store.books()"
+      [rowId]="rowId"
+      emptyMessage="No books loaded yet."
+      caption="Books"
+    />
+    <div class="library-catalog__pagination">
+      <ums-button variant="secondary" (click)="previousPage()">Previous</ums-button>
+      <span>Page {{ store.page() }} -- {{ store.totalCount() }} total</span>
+      <ums-button variant="secondary" (click)="nextPage()">Next</ums-button>
+    </div>
+    @for (book of store.books(); track book.id) {
+      <ums-button
+        *appHasPermission="permissionKeys.library.catalogManage"
+        variant="tertiary"
+        (click)="withdraw(book.id)"
+        >Withdraw {{ book.title }}</ums-button
+      >
+    }
+
+    <div class="library-catalog__form" *appHasPermission="permissionKeys.library.catalogManage">
+      <ums-form-field #bookTitleField="umsFormField" label="Title" [required]="true">
+        <ums-input
+          [id]="bookTitleField.controlId()"
+          [value]="newBookTitle()"
+          (valueChange)="newBookTitle.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #bookIsbnField="umsFormField" label="ISBN">
+        <ums-input
+          [id]="bookIsbnField.controlId()"
+          [value]="newBookIsbn()"
+          (valueChange)="newBookIsbn.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #bookAuthorField="umsFormField" label="Author id" [required]="true">
+        <ums-input
+          [id]="bookAuthorField.controlId()"
+          [value]="newBookAuthorId()"
+          (valueChange)="newBookAuthorId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #bookCategoryField="umsFormField" label="Category id" [required]="true">
+        <ums-input
+          [id]="bookCategoryField.controlId()"
+          [value]="newBookCategoryId()"
+          (valueChange)="newBookCategoryId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateBook()">Create book</ums-button>
+    </div>
+  </section>
+
+  <section
+    class="library-catalog__section"
+    *appHasPermission="permissionKeys.library.catalogManage"
+  >
+    <h2>Authors &amp; Categories</h2>
+    <div class="library-catalog__form">
+      <ums-button variant="secondary" (click)="loadAuthors()">Load authors</ums-button>
+      <ums-form-field #authorNameField="umsFormField" label="New author name">
+        <ums-input
+          [id]="authorNameField.controlId()"
+          [value]="newAuthorName()"
+          (valueChange)="newAuthorName.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateAuthor()">Add author</ums-button>
+    </div>
+    <ul>
+      @for (author of store.authors(); track author.id) {
+        <li>{{ author.id }} -- {{ author.name }}</li>
+      }
+    </ul>
+    <div class="library-catalog__form">
+      <ums-button variant="secondary" (click)="loadCategories()">Load categories</ums-button>
+      <ums-form-field #categoryNameField="umsFormField" label="New category name">
+        <ums-input
+          [id]="categoryNameField.controlId()"
+          [value]="newCategoryName()"
+          (valueChange)="newCategoryName.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateCategory()">Add category</ums-button>
+    </div>
+    <ul>
+      @for (category of store.categories(); track category.id) {
+        <li>{{ category.id }} -- {{ category.name }}</li>
+      }
+    </ul>
+  </section>
+
+  <section class="library-catalog__section">
+    <h2>Copies</h2>
+    <ums-form-field #copiesBookIdField="umsFormField" label="Book id">
+      <ums-input
+        [id]="copiesBookIdField.controlId()"
+        [value]="copiesBookId()"
+        (valueChange)="copiesBookId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadCopies()">Load copies</ums-button>
+    <ums-data-table
+      [columns]="copyColumns"
+      [rows]="currentCopies()"
+      [rowId]="rowId"
+      emptyMessage="No copies loaded yet."
+      caption="Copies"
+    />
+    @for (copy of currentCopies(); track copy.id) {
+      <ums-button
+        *appHasPermission="permissionKeys.library.copyWriteoff"
+        variant="tertiary"
+        (click)="reportLost(copy.id)"
+        >Report lost: {{ copy.accessionNumber }}</ums-button
+      >
+    }
+    <div class="library-catalog__form" *appHasPermission="permissionKeys.library.catalogManage">
+      <ums-form-field #copyAccessionField="umsFormField" label="Accession number" [required]="true">
+        <ums-input
+          [id]="copyAccessionField.controlId()"
+          [value]="newCopyAccession()"
+          (valueChange)="newCopyAccession.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #copyConditionField="umsFormField" label="Condition">
+        <ums-input
+          [id]="copyConditionField.controlId()"
+          [value]="newCopyCondition()"
+          (valueChange)="newCopyCondition.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #copyTypeField="umsFormField" label="Copy type" [required]="true">
+        <ums-select
+          [id]="copyTypeField.controlId()"
+          [options]="copyTypeOptions"
+          [value]="newCopyType()"
+          (valueChange)="newCopyType.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitCreateCopy()">Add copy</ums-button>
+    </div>
+  </section>
+</div>

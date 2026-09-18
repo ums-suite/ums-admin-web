@@ -1,0 +1,155 @@
+<div class="library-circulation">
+  <h1>Loans, Reservations &amp; Fines</h1>
+
+  @if (store.error()) {
+    <p role="alert" class="library-circulation__error">{{ store.error() }}</p>
+  }
+
+  <section
+    class="library-circulation__section"
+    *appHasPermission="permissionKeys.library.loanIssue"
+  >
+    <h2>Issue Loan</h2>
+    <div class="library-circulation__form">
+      <ums-form-field #issueCopyIdField="umsFormField" label="Book copy id" [required]="true">
+        <ums-input
+          [id]="issueCopyIdField.controlId()"
+          [value]="issueCopyId()"
+          (valueChange)="issueCopyId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #issueBorrowerIdField="umsFormField" label="Borrower id" [required]="true">
+        <ums-input
+          [id]="issueBorrowerIdField.controlId()"
+          [value]="issueBorrowerId()"
+          (valueChange)="issueBorrowerId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field
+        #issueBorrowerTypeField="umsFormField"
+        label="Borrower type"
+        [required]="true"
+      >
+        <ums-select
+          [id]="issueBorrowerTypeField.controlId()"
+          [options]="borrowerTypeOptions"
+          [value]="issueBorrowerType()"
+          (valueChange)="issueBorrowerType.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitIssueLoan()">Issue loan</ums-button>
+    </div>
+    <p class="library-circulation__note">
+      Claiming an offered reservation is done here too -- issue a loan against the reserved copy id;
+      there is no separate "claim" endpoint.
+    </p>
+  </section>
+
+  <section class="library-circulation__section">
+    <h2>My Loans</h2>
+    <ums-button variant="secondary" (click)="loadMyLoans()">Load my loans</ums-button>
+    <ums-data-table
+      [columns]="loanColumns"
+      [rows]="store.myLoans()"
+      [rowId]="rowId"
+      emptyMessage="No loans loaded yet."
+      caption="My loans"
+    />
+    @for (loan of store.myLoans(); track loan.id) {
+      <div class="library-circulation__row">
+        <span>{{ loan.id }} ({{ loan.status }})</span>
+        <ums-button variant="secondary" (click)="renew(loan.id)">Renew</ums-button>
+        <ums-button
+          *appHasPermission="permissionKeys.library.loanManage"
+          variant="tertiary"
+          (click)="returnLoan(loan.id)"
+          >Return</ums-button
+        >
+      </div>
+    }
+  </section>
+
+  <section
+    class="library-circulation__section"
+    *appHasPermission="permissionKeys.library.reviewView"
+  >
+    <h2>Loan Review Flags</h2>
+    <ums-form-field #flagsLoanIdField="umsFormField" label="Loan id">
+      <ums-input
+        [id]="flagsLoanIdField.controlId()"
+        [value]="flagsLoanId()"
+        (valueChange)="flagsLoanId.set($event)"
+      />
+    </ums-form-field>
+    <ums-button variant="secondary" (click)="loadReviewFlags()">Load flags</ums-button>
+    <ul>
+      @for (flag of currentFlags(); track flag.id) {
+        <li>{{ flag.flag }} -- {{ flag.detail }} ({{ flag.raisedAt }})</li>
+      }
+    </ul>
+  </section>
+
+  <section class="library-circulation__section">
+    <h2>Reservations</h2>
+    <p class="library-circulation__note">
+      No cancel or claim endpoint exists -- fulfillment is a background worker reacting to a loan
+      return.
+    </p>
+    <div class="library-circulation__form">
+      <ums-form-field #reserveBookIdField="umsFormField" label="Book id" [required]="true">
+        <ums-input
+          [id]="reserveBookIdField.controlId()"
+          [value]="reserveBookId()"
+          (valueChange)="reserveBookId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitReservation()">Reserve</ums-button>
+    </div>
+    <ums-button variant="secondary" (click)="loadMyReservations()">Load my reservations</ums-button>
+    <ums-data-table
+      [columns]="reservationColumns"
+      [rows]="store.myReservations()"
+      [rowId]="rowId"
+      emptyMessage="No reservations loaded yet."
+      caption="My reservations"
+    />
+  </section>
+
+  <section class="library-circulation__section">
+    <h2>Fines</h2>
+    <p class="library-circulation__note">
+      No staff-wide fines list endpoint exists, only "my fines" -- a librarian-facing oversight list
+      has nothing to build against today.
+    </p>
+    <ums-button variant="secondary" (click)="loadMyFines()">Load my fines</ums-button>
+    <ums-data-table
+      [columns]="fineColumns"
+      [rows]="store.myFines()"
+      [rowId]="rowId"
+      emptyMessage="No fines loaded yet."
+      caption="My fines"
+    />
+    @for (fine of store.myFines(); track fine.id) {
+      <div class="library-circulation__row">
+        <span>{{ fine.id }} -- {{ fine.amount }} {{ fine.currency }}</span>
+        <ums-button variant="secondary" (click)="settle(fine.id)"
+          >Settle (creates invoice)</ums-button
+        >
+        @if (fine.invoiceId) {
+          <span>Invoice: {{ fine.invoiceId }}</span>
+        }
+      </div>
+    }
+
+    <div class="library-circulation__form" *appHasPermission="permissionKeys.library.fineWaive">
+      <ums-form-field #waiveFineIdField="umsFormField" label="Fine id to waive" [required]="true">
+        <ums-input
+          [id]="waiveFineIdField.controlId()"
+          [value]="waiveFineId()"
+          (valueChange)="waiveFineId.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="waive()">Waive fine</ums-button>
+    </div>
+  </section>
+</div>

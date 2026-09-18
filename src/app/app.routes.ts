@@ -341,7 +341,28 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'library', loadComponent: placeholder, data: { label: 'Library' } },
+      {
+        path: 'library',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'catalog' },
+          {
+            path: 'catalog',
+            loadComponent: () =>
+              import('./features/library/catalog/library-catalog.component').then(
+                (m) => m.LibraryCatalogComponent,
+              ),
+            data: { label: 'Library -- Catalog' },
+          },
+          {
+            path: 'circulation',
+            loadComponent: () =>
+              import('./features/library/circulation/library-circulation.component').then(
+                (m) => m.LibraryCirculationComponent,
+              ),
+            data: { label: 'Library -- Loans, Reservations & Fines' },
+          },
+        ],
+      },
       { path: 'content', loadComponent: placeholder, data: { label: 'Content' } },
       { path: 'documents', loadComponent: placeholder, data: { label: 'Documents' } },
       { path: 'reporting', loadComponent: placeholder, data: { label: 'Reporting' } },
