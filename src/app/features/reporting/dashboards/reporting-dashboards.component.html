@@ -1,0 +1,37 @@
+<div class="reporting-dashboards">
+  <h1>Reporting Dashboards</h1>
+  <p class="reporting-dashboards__note">
+    No refresh-trigger endpoint exists -- each tile is computed on a schedule server-side. Load a
+    tile to see its own point-in-time freshness; nothing here auto-refreshes.
+  </p>
+
+  <div class="reporting-dashboards__grid">
+    @for (tile of tiles; track tile.domain) {
+      <div *appHasPermission="tile.permissionKey">
+        <ums-card [title]="tile.label" class="reporting-dashboards__card">
+          @let slot = store.dashboard(tile.domain);
+          <ums-button variant="secondary" (click)="load(tile.domain)">Load</ums-button>
+          @switch (slot.status) {
+            @case ('loading') {
+              <p>Loading…</p>
+            }
+            @case ('error') {
+              <p role="alert" class="reporting-dashboards__error">{{ slot.errorMessage }}</p>
+            }
+            @case ('loaded') {
+              @if (slot.response?.status === 'NeverComputed') {
+                <ums-badge variant="neutral">Never computed</ums-badge>
+              } @else {
+                <ums-badge variant="info">Computed</ums-badge>
+                <app-freshness-label [asOf]="slot.response?.dataAsOf ?? null" />
+              }
+            }
+            @default {
+              <p>Not loaded yet.</p>
+            }
+          }
+        </ums-card>
+      </div>
+    }
+  </div>
+</div>

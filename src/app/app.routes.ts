@@ -434,7 +434,34 @@ export const routes: Routes = [
           },
         ],
       },
-      { path: 'reporting', loadComponent: placeholder, data: { label: 'Reporting' } },
+      {
+        path: 'reporting',
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'dashboards' },
+          {
+            path: 'dashboards',
+            loadComponent: () =>
+              import('./features/reporting/dashboards/reporting-dashboards.component').then(
+                (m) => m.ReportingDashboardsComponent,
+              ),
+            data: { label: 'Reporting -- Dashboards' },
+          },
+          {
+            path: 'builder',
+            canActivate: [
+              permissionGuard([
+                PERMISSION_KEYS.reporting.regulatoryManage,
+                PERMISSION_KEYS.reporting.regulatoryRun,
+              ]),
+            ],
+            loadComponent: () =>
+              import('./features/reporting/builder/reporting-builder.component').then(
+                (m) => m.ReportingBuilderComponent,
+              ),
+            data: { label: 'Reporting -- Report Builder' },
+          },
+        ],
+      },
       { path: 'audit', loadComponent: placeholder, data: { label: 'Audit Log' } },
       { path: 'configuration', loadComponent: placeholder, data: { label: 'Configuration' } },
       { path: '**', loadComponent: placeholder, data: { label: 'This page' } },

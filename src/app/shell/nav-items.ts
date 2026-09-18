@@ -29,7 +29,7 @@ export const NAV_ITEMS: readonly AdminNavItem[] = [
   { path: '/library/catalog', label: 'Library', icon: 'book-bookmark' },
   { path: '/content/notices', label: 'Content', icon: 'file-text' },
   { path: '/documents/registry', label: 'Documents', icon: 'certificate' },
-  { path: '/reporting', label: 'Reporting', icon: 'chart-bar' },
+  { path: '/reporting/dashboards', label: 'Reporting', icon: 'chart-bar' },
   { path: '/audit', label: 'Audit Log', icon: 'list-bullets' },
   { path: '/configuration', label: 'Configuration', icon: 'sliders' },
 ] as const;

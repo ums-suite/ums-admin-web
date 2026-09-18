@@ -1,0 +1,156 @@
+<div class="reporting-builder">
+  <h1>Regulatory Report Builder</h1>
+  <p class="reporting-builder__note">
+    No preview endpoint exists anywhere -- the preview below is built entirely client-side from the
+    fields you compose, never real data. Excel is a declarable format server-side but is not
+    implemented; only PDF/CSV are ever offered for a run.
+  </p>
+
+  @if (store.error()) {
+    <p role="alert" class="reporting-builder__error">{{ store.error() }}</p>
+  }
+
+  <section
+    class="reporting-builder__section"
+    *appHasPermission="permissionKeys.reporting.regulatoryManage"
+  >
+    <h2>Definitions Catalog</h2>
+    <ums-button variant="secondary" (click)="loadDefinitions()">Load definitions</ums-button>
+    <ul>
+      @for (def of store.definitions(); track def.id) {
+        <li>{{ def.id }} -- {{ def.name }} ({{ def.category }}, {{ def.supportedFormats }})</li>
+      }
+    </ul>
+
+    <h3>Compose a Definition</h3>
+    <div class="reporting-builder__form">
+      <ums-form-field #newNameField="umsFormField" label="Name" [required]="true">
+        <ums-input
+          [id]="newNameField.controlId()"
+          [value]="newName()"
+          (valueChange)="newName.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #newCategoryField="umsFormField" label="Category" [required]="true">
+        <ums-select
+          [id]="newCategoryField.controlId()"
+          [options]="categoryOptions"
+          [value]="newCategory()"
+          (valueChange)="newCategory.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #filtersJsonField="umsFormField" label="Filters (JSON, optional)">
+        <ums-textarea
+          [id]="filtersJsonField.controlId()"
+          [value]="filtersJson()"
+          (valueChange)="filtersJson.set($event)"
+        />
+      </ums-form-field>
+      <label
+        ><input type="checkbox" [checked]="includePdf()" (change)="includePdf.set(!includePdf())" />
+        PDF</label
+      >
+      <label
+        ><input type="checkbox" [checked]="includeCsv()" (change)="includeCsv.set(!includeCsv())" />
+        CSV</label
+      >
+    </div>
+
+    <div class="reporting-builder__form">
+      <ums-form-field #fieldKeyField="umsFormField" label="Field key">
+        <ums-input
+          [id]="fieldKeyField.controlId()"
+          [value]="fieldKeyInput()"
+          (valueChange)="fieldKeyInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #fieldLabelField="umsFormField" label="Field label">
+        <ums-input
+          [id]="fieldLabelField.controlId()"
+          [value]="fieldLabelInput()"
+          (valueChange)="fieldLabelInput.set($event)"
+        />
+      </ums-form-field>
+      <ums-button variant="secondary" (click)="addField()">Add field</ums-button>
+    </div>
+    <ul>
+      @for (field of draftFields(); track field.fieldKey) {
+        <li>
+          {{ field.label }} ({{ field.fieldKey }})
+          <ums-button variant="tertiary" (click)="removeField($index)">Remove</ums-button>
+        </li>
+      }
+    </ul>
+
+    @if (previewColumns().length > 0) {
+      <div class="reporting-builder__preview">
+        <p class="reporting-builder__note">Client-side preview only -- not real data.</p>
+        <table>
+          <thead>
+            <tr>
+              @for (col of previewColumns(); track col) {
+                <th>{{ col }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              @for (col of previewColumns(); track col) {
+                <td>--</td>
+              }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <ums-button (click)="submitCreateDefinition()">Save definition</ums-button>
+  </section>
+
+  <section
+    class="reporting-builder__section"
+    *appHasPermission="permissionKeys.reporting.regulatoryRun"
+  >
+    <h2>Run a Report</h2>
+    <p class="reporting-builder__note">
+      Running a report requires only reporting.regulatory.run -- browsing the definitions catalog
+      above requires the separate reporting.regulatory.manage permission. If you only hold Run, you
+      will need a definition id from elsewhere.
+    </p>
+    <div class="reporting-builder__form">
+      <ums-form-field #runDefinitionIdField="umsFormField" label="Definition id" [required]="true">
+        <ums-input
+          [id]="runDefinitionIdField.controlId()"
+          [value]="runDefinitionId()"
+          (valueChange)="runDefinitionId.set($event)"
+        />
+      </ums-form-field>
+      <ums-form-field #runFormatField="umsFormField" label="Format" [required]="true">
+        <ums-select
+          [id]="runFormatField.controlId()"
+          [options]="runFormatOptions"
+          [value]="runFormat()"
+          (valueChange)="runFormat.set($event)"
+        />
+      </ums-form-field>
+      <ums-button (click)="submitRun()">Run report</ums-button>
+    </div>
+
+    @if (runError()) {
+      <p role="alert" class="reporting-builder__error">{{ runError() }}</p>
+    }
+
+    @if (isTracking()) {
+      @if (snapshot(); as snap) {
+        <p>Status: {{ snap.status }}</p>
+        @if (snap.status === 'running' || snap.status === 'queued') {
+          <ums-progress-bar [value]="50" />
+        }
+      }
+    }
+
+    @if (downloadUrl(); as url) {
+      <a [href]="url" target="_blank" rel="noopener">Download result</a>
+    }
+  </section>
+</div>
